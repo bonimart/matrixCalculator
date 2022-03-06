@@ -23,7 +23,9 @@ using namespace std;
 
 bool decompressFile ( const char * inFileName, const char * outFileName )
 {
-  // todo
+  // read tree
+  // read length
+  // decode input
   return false;
 }
 
@@ -35,12 +37,23 @@ bool compressFile ( const char * inFileName, const char * outFileName )
 #ifndef __PROGTEST__
 bool identicalFiles ( const char * fileName1, const char * fileName2 )
 {
-  // todo
-  return false;
+  ifstream f1(fileName1), f2(fileName2);
+  char c1, c2;
+
+  while(!f1.eof() && !f2.eof()){
+    if(!f1.good() || !f2.good()) {
+      return false;
+    }
+    c1 = f1.get();
+    c2 = f2.get();
+    if(c1 != c2) return false;
+  }
+  return true;
 }
 
 int main ( void )
 {
+  assert( identicalFiles("tests/test0.orig", "tests/test0.orig"));
   assert ( decompressFile ( "tests/test0.huf", "tempfile" ) );
   assert ( identicalFiles ( "tests/test0.orig", "tempfile" ) );
 
