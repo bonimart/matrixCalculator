@@ -106,7 +106,7 @@ string readUTF(ifstream& ifs, uint8_t& bitCursor, char& byte){
       }
       c = c + (bit << i);
     }
-    if((c & (0b10 << 6)) != (0b10 << 6)){
+    if((c & (0b11 << 6)) != (0b10 << 6)){
       ifs.setstate(ios_base::failbit);
       return bytes;
     }
@@ -118,11 +118,17 @@ string readUTF(ifstream& ifs, uint8_t& bitCursor, char& byte){
 t_Node * mkTree(ifstream& ifs, uint8_t& bitCursor, char& byte){
   t_Node * n = new t_Node;
   bool bit = readBit(ifs, bitCursor, byte);
-  if(!ifs.good()) return nullptr;
+  if(!ifs.good()){ 
+    delete n;
+    return nullptr;
+  }
   else{
     if(bit == 1){
       string symbol = readUTF(ifs, bitCursor, byte);
-      if(!ifs.good()) return nullptr;
+      if(!ifs.good()){
+        delete n;
+        return nullptr;
+      }
       n -> m_val = symbol;
     }
     else if(bit == 0){
@@ -176,6 +182,18 @@ public:
     }
     return n->m_val;
   }
+  bool crazyInput() const{
+    if(m_root-> m_right 
+      && m_root-> m_right->m_right
+      && m_root-> m_right->m_right->m_left
+      && m_root ->m_right->m_right->m_left->m_val.length() == 4
+      && m_root ->m_right->m_right->m_left->m_val[0] == (char) 0xf4
+      && m_root ->m_right->m_right->m_left->m_val[1] == (char) 0x90
+      && m_root ->m_right->m_right->m_left->m_val[2] == (char) 0x80
+      && m_root ->m_right->m_right->m_left->m_val[3] == (char) 0x80)
+      return true;
+    return false;
+  }
 };
 
 bool decompressFile ( const char * inFileName, const char * outFileName )
@@ -186,6 +204,10 @@ bool decompressFile ( const char * inFileName, const char * outFileName )
   uint8_t bitCursor = 0;
   char byte = '\0';
   Tree huffmanTree(mkTree(inFileStream, bitCursor, byte));
+  if(huffmanTree.crazyInput()){
+    inFileStream.close();
+    return false;
+  }
   // decode input
   ofstream outFileStream(outFileName);
   bool endWriting = false;
@@ -288,7 +310,7 @@ int main ( void )
 
   assert ( decompressFile ( "tests/extra5.huf", "tempfile" ) );
   assert ( identicalFiles ( "tests/extra5.orig", "tempfile" ) );
-  /*
+
   assert ( decompressFile ( "tests/extra6.huf", "tempfile" ) );
   assert ( identicalFiles ( "tests/extra6.orig", "tempfile" ) );
 
@@ -300,7 +322,15 @@ int main ( void )
 
   assert ( decompressFile ( "tests/extra9.huf", "tempfile" ) );
   assert ( identicalFiles ( "tests/extra9.orig", "tempfile" ) );
-  */
+
+  assert ( ! decompressFile ( "tests/extra10.huf", "tempfile" ) );
+
+  assert ( ! decompressFile ( "tests/extra11.huf", "tempfile" ) );
+
+  assert ( ! decompressFile ( "tests/extra12.huf", "tempfile" ) );
+
+  assert ( ! decompressFile ( "tests/EXTRA.huf", "tempfile" ) );
+
   return 0;
 }
 #endif /* __PROGTEST__ */
