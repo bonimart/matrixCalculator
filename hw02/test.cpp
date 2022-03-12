@@ -15,6 +15,19 @@
 using namespace std;
 #endif /* __PROGTEST__ */
 
+
+class Company{
+      public:
+        string m_name, m_addr, m_taxID;
+        unsigned int m_sum;
+        Company(const string & name, const string & addr, const string & taxID)
+        : m_name(name)
+        , m_addr(addr)
+        , m_taxID(taxID) {
+          m_sum = 0;
+        }
+};
+
 class CVATRegister
 {
   public:
