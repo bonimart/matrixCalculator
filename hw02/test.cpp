@@ -88,22 +88,27 @@ class CVATRegister
     auto findByTaxID(const string & taxID) const;
 };
 
-string toLower(const string & str){
-  string newStr = str;
-  for( size_t i = 0; i < newStr.size(); ++i){
-    if(newStr[i] >= 'A' && newStr[i] <= 'Z'){
-      newStr[i] -= 'A' - 'a';
-    }
+bool compIns(const string & str1, const string & str2){
+  size_t x = str1.size();
+  size_t y = str2.size();
+  size_t mi = x < y ? x : y;
+  char c1;
+  char c2;
+  char diff = 'A' - 'a';
+  for(size_t i = 0; i < mi; i++){
+    c1 = str1[i] >= 'A' && str1[i] <='Z' ? str1[i] - diff : str1[i];
+    c2 = str2[i] >= 'A' && str2[i] <='Z' ? str2[i] - diff : str2[i];
+    if(c1 > c2) return false;
+    else if(c1 < c2) return true;
   }
-  return newStr;
+  return mi == x && mi != y ? true : false;
 }
 
 bool compNameAddr(const Company * c1, const Company * c2){
-      string n1 = toLower(c1 -> m_name);
-      string n2 = toLower(c2 -> m_name);
-      string a1 = toLower(c1 -> m_addr);
-      string a2 = toLower(c2 -> m_addr);
-      return n1 < n2 || ((n1 == n2) && (a1 < a2));
+      return compIns(c1-> m_name, c2->m_name) 
+        || (!compIns(c1-> m_name, c2->m_name)
+        && !compIns(c2-> m_name, c1->m_name)
+        && compIns(c1-> m_addr, c2->m_addr));
 }
 
 bool compTaxID(const Company * c1, const Company * c2){
@@ -127,7 +132,7 @@ auto CVATRegister::findByTaxID(const string & taxID) const{
 
 bool CVATRegister::newCompany(const string & name, const string & addr,const string & taxID ){
   
-  Company * c = new Company(toLower(name), toLower(addr), taxID);
+  Company * c = new Company(name, addr, taxID);
   if(binary_search(m_nameAdrArr.begin(), m_nameAdrArr.end(), c, compNameAddr)
     || binary_search(m_taxIDArr.begin(), m_taxIDArr.end(), c, compTaxID)){
       delete c;
@@ -147,8 +152,8 @@ bool CVATRegister::newCompany(const string & name, const string & addr,const str
 bool CVATRegister::cancelCompany(const string & name, const string & addr){
   auto ix = findByNameAddr(name, addr);
   if(ix == m_nameAdrArr.end() 
-    || toLower((*ix) -> m_name) != toLower(name)
-    || toLower((*ix) -> m_addr) != toLower(addr)){
+    || compIns((*ix) -> m_name, name) || compIns(name, (*ix) -> m_name)
+    || compIns((*ix) -> m_addr, addr) || compIns(addr, (*ix) -> m_addr)){
       return false;
   }
 
@@ -176,8 +181,8 @@ bool CVATRegister::cancelCompany(const string & taxID){
 bool CVATRegister::invoice(const string & name, const string & addr, unsigned int amount){
   auto ix = findByNameAddr(name, addr);
   if(ix == m_nameAdrArr.end() 
-    || toLower((*ix) -> m_name) != toLower(name)
-    || toLower((*ix) -> m_addr) != toLower(addr)){
+    || compIns((*ix) -> m_name, name) || compIns(name, (*ix) -> m_name)
+    || compIns((*ix) -> m_addr, addr) || compIns(addr, (*ix) -> m_addr)){
       return false;
   }
 
@@ -203,8 +208,8 @@ bool CVATRegister::invoice(const string & taxID, unsigned int amount){
 bool CVATRegister::audit(const string & name, const string & addr, unsigned int & sumIncome) const{
   auto ix = findByNameAddr(name, addr);
   if(ix == m_nameAdrArr.end() 
-    || toLower((*ix) -> m_name) != toLower(name)
-    || toLower((*ix) -> m_addr) != toLower(addr)){
+    || compIns((*ix) -> m_name, name) || compIns(name, (*ix) -> m_name)
+    || compIns((*ix) -> m_addr, addr) || compIns(addr, (*ix) -> m_addr)){
       return false;
   }
   sumIncome = (*ix) -> m_sum;
@@ -230,8 +235,8 @@ bool CVATRegister::nextCompany(string & name, string & addr) const{
   auto ix = findByNameAddr(name, addr);
   if(ix == m_nameAdrArr.end()
     || ix == m_nameAdrArr.end() - 1
-    || toLower((*ix) -> m_name) != toLower(name)
-    || toLower((*ix) -> m_addr) != toLower(addr)){
+    || compIns((*ix) -> m_name, name) || compIns(name, (*ix) -> m_name)
+    || compIns((*ix) -> m_addr, addr) || compIns(addr, (*ix) -> m_addr)){
       return false;
   }
   name = (*(ix+1)) -> m_name;
@@ -262,6 +267,12 @@ int               main           ( void )
 {
   string name, addr;
   unsigned int sumIncome;
+
+  string a = "blabla";
+  string b = "bla";
+  assert(!compIns(a, b));
+  assert(compIns(b, a));
+  assert(!compIns(b, b));
 
   CVATRegister b0;
   assert ( b0 . newCompany ( "ACME", "Kolejni", "666/666/666" ) );
