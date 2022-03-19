@@ -29,10 +29,188 @@ ios_base & ( * date_format ( const char * fmt ) ) ( ios_base & x )
   return [] ( ios_base & ios ) -> ios_base & { return ios; };
 }
 //=================================================================================================
+
+bool isLeap(const int & year){
+  return (!(year % 4) && year % 100) || !(year % 400);
+}
+
+bool pastLeapDay(const int & y, const int & m, const int & d){
+  return isLeap(y) && (m > 2 || (m == 2 && d == 29));
+}
+
+int validDays(const int & y, const int & m){
+  switch(m){
+    case 2:
+      return 28 + isLeap(y);
+    case 4:
+      return 30;
+    case 6:
+      return 30;
+    case 9:
+      return 30;
+    case 11:
+      return 30;
+    default:
+      return 31;
+  }
+
+}
+
+bool isValidDate(const int & y, const int & m, const int & d){
+  if(y < 2000 || y > 2030
+    || m < 1 || m > 12
+    || d < 1 || d > validDays(y, m)){
+      return false;
+  }
+  return true;
+}
+
 class CDate
 {
-  // todo
+private:
+  int m_year, m_month, m_day;
+
+public:
+  CDate(const int & y, const int & m, const int & d){
+    if(!isValidDate(y, m, d)){
+      throw InvalidDateException();
+    }
+    m_year = y;
+    m_month = m;
+    m_day = d;
+  }
+  ~CDate(){}
+
+  CDate operator+( const int & days) const;
+  CDate operator-( const int & days) const;
+  int operator-(const CDate & date) const;
+  CDate& operator++();
+  CDate operator++(int);
+  CDate& operator--();
+  CDate operator--(int);
+  
+  bool operator==(const CDate & date) const;
+  bool operator!=(const CDate & date) const;
+  bool operator>(const CDate & date) const;
+  bool operator>=(const CDate & date) const;
+  bool operator<(const CDate & date) const;
+  bool operator<=(const CDate & date) const;
+  friend ostream & operator<<(ostream & os, const CDate & date);
+  friend istream & operator>>(istream & is, CDate & date);
+
 };
+
+CDate CDate::operator+( const int & days) const{
+  int diff = days;
+  int y = m_year;
+  int m = m_month;
+  int d = m_day;
+  while(diff > 0){
+    if(isValidDate(y, m, d+1)){
+      d++;
+    }
+    else if(isValidDate(y, m+1, 1)){
+      m++;
+      d = 1;
+    }
+    else if(isValidDate(y+1, 1, 1)){
+      y++;
+      m = 1;
+      d = 1;
+    }
+    diff--;
+  }
+
+  while(diff < 0){
+    if(isValidDate(y, m, d-1)){
+      d--;
+    }
+    else if(isValidDate(y, m-1, validDays(y, m-1))){
+      d = validDays(y, m-1);
+      m--;
+    }
+    else if(isValidDate(y-1, 12, 31)){
+      d = 31;
+      m = 12;
+      y--;
+    }
+    diff++;
+  }
+  return CDate(y, m, d);
+}
+
+CDate CDate::operator-( const int & days) const{
+  return (*this + (-days));
+}
+
+int CDate::operator-(const CDate & date) const{
+  CDate mi = *this < date ? *this : date;
+  CDate ma = *this > date ? *this : date;
+  int diff = 0;
+  while(mi < ma){
+    diff++;
+    mi = mi + 1;
+  }
+  return diff;
+}
+
+CDate& CDate::operator++(){
+  *this = *this + 1;
+  return *this;
+}
+CDate CDate::operator++(int){
+  CDate cpy = *this;
+  ++(*this);
+  return cpy;
+}
+
+CDate& CDate::operator--(){
+  *this = *this - 1;
+  return *this;
+}
+CDate CDate::operator--(int){
+  CDate cpy = *this;
+  --(*this);
+  return cpy;
+}
+
+bool CDate::operator==(const CDate & date) const{
+  return m_day == date.m_day
+    && m_month == date.m_month
+    && m_year == date.m_year;
+}
+bool CDate::operator<(const CDate & date) const{
+  return m_year < date.m_year
+    || (m_year == date.m_year && m_month < date.m_month)
+    || (m_year == date.m_year && m_month == date.m_month && m_day < date.m_day);
+}
+bool CDate::operator!=(const CDate & date) const{
+  return !(*this == date);
+}
+bool CDate::operator>=(const CDate & date) const{
+  return !(*this < date);
+}
+bool CDate::operator>(const CDate & date) const{
+  return !(*this < date || *this == date);
+}
+bool CDate::operator<=(const CDate & date) const{
+  return (*this == date || *this < date);
+}
+
+ostream & operator<<(ostream & os, const CDate & date){
+  return os << setw(4) << setfill('0') << date.m_year << "-" << setw(2) << date.m_month << "-" << setw(2) << date.m_day;
+}
+istream & operator>>(istream & is, CDate & date){
+  int y, m, d;
+  char d1, d2;
+  is >> y >> d1 >> m >> d2 >> d;
+  if(d1 != '-' || d2 != '-' || !isValidDate(y, m, d)){
+    is.setstate(ios_base::failbit);
+    return is;
+  }
+  date = CDate(y, m, d);
+  return is;
+}
 
 #ifndef __PROGTEST__
 int main ( void )
@@ -133,10 +311,10 @@ int main ( void )
   oss . str ("");
   oss << d;
   assert ( oss . str () == "2000-02-29" );
-
   //-----------------------------------------------------------------------------
   // bonus test examples
   //-----------------------------------------------------------------------------
+  /*
   CDate f ( 2000, 5, 12 );
   oss . str ("");
   oss << f;
@@ -260,7 +438,7 @@ int main ( void )
   oss . str ("");
   oss << g;
   assert ( oss . str () == "2000-01-01" );
-
+  */
   return EXIT_SUCCESS;
 }
 #endif /* __PROGTEST__ */
