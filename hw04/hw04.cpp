@@ -29,10 +29,14 @@ public:
         cout << endl;
     }
     void recursivePrint(){
-        CFile * x = this;
-        cout << "recursive print" << endl;
+        Node * x = this -> curr;
+        cout << "Vyhazuji rekurzivni print:" << endl;
         while(x){
-            x -> print();
+            cout << "Rodice: " << x ->parents << "; ";
+            for(uint32_t i = 0; i < curr -> m_bytes -> len; ++i){
+            cout << (int) curr -> m_bytes -> data[i] << ", ";
+            }
+            cout << endl;
             x = x -> prev;
         }
     }
@@ -83,79 +87,118 @@ private:
         Bytes * m_bytes;
         uint32_t pivot;
         uint32_t parents;
+        Node * prev;
 
         Node(){
-            m_bytes = new Bytes();
+            m_bytes = nullptr;
             pivot = 0;
             parents = 0;
+            prev = nullptr;
         }
         Node(const Node &node){
             m_bytes = node.m_bytes;
             m_bytes -> refCount++;
             pivot = node.pivot;
             parents = 0;
+            prev = node.prev;
 
         }
         ~Node(){
-            if(--(m_bytes -> refCount)){
+            //cout << "Volam node destructor, s refcount: ";
+            //cout << m_bytes -> refCount << endl;
+            if(!--(m_bytes -> refCount)){
                 delete m_bytes;
             }
             pivot = 0;
             parents = 0;
         }
-        void reallocate(){
-
-        }
     };
 
-    CFile * prev;
     Node * curr;
 };
 
 CFile::CFile ( void ){
     curr = new Node();
-    prev = nullptr;
+    curr -> m_bytes = new Bytes();
 }
 CFile::CFile (const CFile &file){
-    curr = file.curr;
-    prev = file.prev;
+    //cout << "Copying CFile" << endl;
+    curr = new Node();
+    curr -> m_bytes = file.curr -> m_bytes;
+    curr -> m_bytes ->refCount++;
+    curr -> pivot = file.curr -> pivot;
+    curr -> prev = file.curr -> prev;
 
-    CFile * x = prev;
-    CFile * y;
+    Node * x = curr -> prev;
+    Node * y;
     while(x){
         y = x -> prev;
-        x -> curr -> parents++;
+        x -> parents++;
         x = y;
     }
 }
 CFile CFile::operator=(const CFile &file){
+    /*
     if(curr) delete curr;
     curr = nullptr;
-    if(prev) delete prev;
-    prev = nullptr;
+    */
+    Node * nxt = nullptr; 
+    while(curr){
+        nxt = curr -> prev;
+        delete curr;
+        curr = nxt;
+    }
+    curr = nullptr;
     return CFile(file);
 }
 CFile::~CFile(){
-    delete curr;
+    Node * nxt = nullptr; 
+    while(curr){
+        nxt = curr -> prev;
+        delete curr;
+        curr = nxt;
+    }
     curr = nullptr;
-    if(prev) delete prev;
-    prev = nullptr;
 }
 
 void CFile::addVersion ( void ){
-    prev = new CFile(*this);
-    prev -> curr -> parents = 1;
+    Node * tmp = curr -> prev;
+    curr -> prev = new Node();
+    curr -> prev -> m_bytes = curr -> m_bytes;
+    curr -> prev -> m_bytes ->refCount++;
+    curr -> prev -> parents = 1;
+    curr -> prev -> pivot = curr -> pivot;
+    curr -> prev -> prev = tmp;
+
 }
 bool CFile::undoVersion ( void ){
-    if(prev == nullptr){
+    if(curr -> prev == nullptr){
         return false;
     }
-    delete curr;
-    curr = prev -> curr;
-    if(--(prev -> curr -> parents)){
-        curr -> m_bytes -> refCount++;
+
+    Node * tmp = curr -> prev;
+
+    if(!curr -> parents){
+        //cout << "Undo with delete on this number of refs: " << curr -> m_bytes -> refCount << endl;
+        delete curr;      
     }
-    prev = prev -> prev;
+    else{
+        curr -> m_bytes -> refCount--;
+    }
+
+
+    if(--(tmp -> parents)){
+        //cout << "TADY NECO NEHRAJE" << endl;
+        curr = new Node();
+        curr -> m_bytes = tmp -> m_bytes;
+        curr -> m_bytes ->refCount++;
+        curr -> parents = 0;
+        curr -> pivot = tmp -> pivot;
+    }
+    else{
+        curr = tmp;
+    }
+    curr -> prev = tmp -> prev;
     return true;
 }
 bool CFile::seek ( uint32_t offset ){
@@ -192,6 +235,11 @@ void CFile::truncate ( void ){
         if(curr->m_bytes->refCount > 1){
             curr->m_bytes -> refCount--;
             Bytes * tmp = new Bytes(*curr->m_bytes);
+            curr->m_bytes = tmp;
+        }
+        else{
+            Bytes * tmp = new Bytes(*curr->m_bytes);
+            delete curr -> m_bytes;
             curr->m_bytes = tmp;
         }
         curr->m_bytes -> len = curr->pivot;
@@ -231,9 +279,9 @@ int main ( void )
 {
     CFile f0;   
     assert ( writeTest ( f0, { 10, 20, 30 }, 3 ) );
-    f0 . addVersion(); //potom smaz
-    assert ( f0 . undoVersion () ); //potom smaz
-    /*
+    //f0 . addVersion(); //potom smaz
+    //assert ( f0 . undoVersion () ); //potom smaz
+    
     assert ( f0 . fileSize () == 3 );
     assert ( writeTest ( f0, { 60, 70, 80 }, 3 ) );
     assert ( f0 . fileSize () == 6 );
@@ -244,7 +292,6 @@ int main ( void )
     assert ( readTest ( f0, { 20, 5, 4, 70, 80 }, 7 ));
     assert ( f0 . seek ( 3 ));
     f0 . addVersion();
-    f0.recursivePrint();
     assert ( f0 . seek ( 6 ));
     assert ( writeTest ( f0, { 100, 101, 102, 103 }, 4 ) );
     f0 . addVersion();
@@ -256,21 +303,40 @@ int main ( void )
     assert ( f0 . seek ( 0 ));
     assert ( readTest ( f0, { 10, 20, 5, 4, 70 }, 20 ));
     assert ( f0 . undoVersion () );
+    cout << "PRED----------------" << endl;
+    f0.recursivePrint();
+    f1.recursivePrint();
+    
     assert ( f0 . seek ( 0 ));
     assert ( readTest ( f0, { 10, 20, 5, 4, 70, 80, 100, 101, 102, 103 }, 20 ));
-    assert ( f0 . undoVersion () );
+    assert ( f0 . undoVersion () ); //--------------TADY SE NEJAK ZTRATI ODKAZOVANE HODNOTY
+    cout << "PO--------------" << endl;
+    f0.recursivePrint();
+    f1.recursivePrint();
+    
     assert ( f0 . seek ( 0 ));
     assert ( readTest ( f0, { 10, 20, 5, 4, 70, 80 }, 20 ));
     assert ( !f0 . seek ( 100 ));
     assert ( writeTest ( f1, { 200, 210, 220 }, 3 ) );
+    f1.recursivePrint();
     assert ( f1 . seek ( 0 ));
     assert ( readTest ( f1, { 10, 20, 5, 4, 70, 200, 210, 220, 102, 103 }, 20 ));
-    f1.recursivePrint();
     assert ( f1 . undoVersion () );
     assert ( f1 . undoVersion () );
     assert ( readTest ( f1, { 4, 70, 80 }, 20 ));
     assert ( !f1 . undoVersion () );
-    */
+
+    CFile f2 = f1;
+    assert ( writeTest ( f2, { 60, 70, 80 }, 3 ) );
+    f2.addVersion();
+    CFile f3(f2);
+    f2.recursivePrint();
+    assert ( f2 . undoVersion () );
+    f3.recursivePrint();
+    assert ( writeTest ( f2, { 60, 70, 80 }, 3 ) );
+    assert ( f3 . undoVersion () );
+    f3.recursivePrint();
+    
     return EXIT_SUCCESS;
 }
 #endif /* __PROGTEST__ */
