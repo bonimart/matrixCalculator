@@ -23,8 +23,8 @@ public:
     void addVersion ( void );
     bool undoVersion ( void );
     void print(){
-        for(uint32_t i = 0; i < m_bytes -> len; ++i){
-            cout << (int) m_bytes -> data[i] << ", ";
+        for(uint32_t i = 0; i < curr -> m_bytes -> len; ++i){
+            cout << (int) curr -> m_bytes -> data[i] << ", ";
         }
         cout << endl;
     }
@@ -47,7 +47,7 @@ private:
 
             
             Bytes(){
-                refCount = 0;
+                refCount = 1;
                 len = 0;
                 cap = 0;
                 data = nullptr;
@@ -67,150 +67,138 @@ private:
                 cap = 0;
                 delete [] data;
             }
+            void reallocate(){
+                cap = cap * 2 + 10;
+                uint8_t * tmp = new uint8_t[cap];
+                for(uint32_t i = 0; i < len; ++i){
+                    tmp[i] = data[i];
+                }
+                delete [] data;
+                data = tmp;
+            }
 
         };
-    
-    struct Data{
 
+    struct Node{
+        Bytes * m_bytes;
+        uint32_t pivot;
+        uint32_t parents;
+
+        Node(){
+            m_bytes = new Bytes();
+            pivot = 0;
+            parents = 0;
+        }
+        Node(const Node &node){
+            m_bytes = node.m_bytes;
+            m_bytes -> refCount++;
+            pivot = node.pivot;
+            parents = 0;
+
+        }
+        ~Node(){
+            if(--(m_bytes -> refCount)){
+                delete m_bytes;
+            }
+            pivot = 0;
+            parents = 0;
+        }
+        void reallocate(){
+
+        }
     };
 
-    Bytes * m_bytes;
-    uint32_t pivot;
     CFile * prev;
-    int parents;
+    Node * curr;
 };
 
 CFile::CFile ( void ){
-    m_bytes = new Bytes();
-    m_bytes -> refCount += 1;
-    pivot = 0;
-    parents = 0;
+    curr = new Node();
     prev = nullptr;
 }
 CFile::CFile (const CFile &file){
-    cout << "Called cpy constructor" << endl;
-    m_bytes = file.m_bytes;
-    m_bytes -> refCount++;
-    pivot = file.pivot;
+    curr = file.curr;
     prev = file.prev;
-    parents = 0;
 
     CFile * x = prev;
     CFile * y;
     while(x){
         y = x -> prev;
-        x -> parents++;
+        x -> curr -> parents++;
         x = y;
     }
 }
 CFile CFile::operator=(const CFile &file){
-    if(m_bytes -> refCount-- == 1){
-        delete m_bytes;
-    }
+    if(curr) delete curr;
+    curr = nullptr;
     if(prev) delete prev;
+    prev = nullptr;
     return CFile(file);
 }
 CFile::~CFile(){
-    cout << m_bytes -> refCount << endl;
-    if(!--(m_bytes -> refCount)){
-        delete m_bytes;
-    }
-    m_bytes = nullptr;
-    pivot = 0;
+    delete curr;
+    curr = nullptr;
     if(prev) delete prev;
     prev = nullptr;
 }
-/*
-void CFile::recursiveDelete(){
-    CFile * x = prev;
-    CFile * y;
-    while(x){
-        y = x -> prev;
-        if(!--(x->parents)){
-            delete x;
-        }
-        x = y;
-    }
-}
-*/
+
 void CFile::addVersion ( void ){
-    //CFile * tmp = this -> prev;
     prev = new CFile(*this);
-    /*
-    prev -> pivot = this -> pivot;
-    prev -> m_bytes = this -> m_bytes;
-    */
-    prev -> parents++;
-    //m_bytes -> refCount++;
-    //prev -> prev = tmp;
-    
+    prev -> curr -> parents = 1;
 }
 bool CFile::undoVersion ( void ){
     if(prev == nullptr){
         return false;
     }
-
-    if(!--(m_bytes -> refCount)){
-        delete m_bytes;
+    delete curr;
+    curr = prev -> curr;
+    if(--(prev -> curr -> parents)){
+        curr -> m_bytes -> refCount++;
     }
-    m_bytes = prev -> m_bytes;
-    if(--(prev -> parents)){
-        cout << m_bytes -> refCount << endl;
-        m_bytes -> refCount++;
-    }
-    pivot = prev -> pivot;
     prev = prev -> prev;
-
     return true;
 }
 bool CFile::seek ( uint32_t offset ){
-    if( offset < 0 || offset > m_bytes -> len){
+    if( offset < 0 || offset > curr -> m_bytes -> len){
         return false;
     }
-    pivot = offset;
+    curr -> pivot = offset;
     return true;
 }
 uint32_t CFile::read ( uint8_t* dst, uint32_t bytes ){
     uint32_t idx = 0;
-    while(pivot < m_bytes -> len && idx < bytes) {
-        dst[idx++] = m_bytes -> data[pivot++];
+    while(curr -> pivot < curr -> m_bytes -> len && idx < bytes) {
+        dst[idx++] = curr -> m_bytes -> data[curr -> pivot++];
     }
     return idx;
 }
 uint32_t CFile::write ( const uint8_t * src, uint32_t bytes ){
-    if(m_bytes->refCount > 1 && src != nullptr){
-        m_bytes -> refCount--;
-        Bytes * n_bytes = new Bytes(*m_bytes);
-        m_bytes = n_bytes;
+    if(curr->m_bytes->refCount > 1 && src != nullptr){
+        curr -> m_bytes -> refCount--;
+        Bytes * n_bytes = new Bytes(*curr->m_bytes);
+        curr->m_bytes = n_bytes;
     }
     for(uint32_t i = 0; i < bytes; ++i){
-        if(m_bytes -> len == m_bytes->cap){
-            m_bytes -> cap = (m_bytes -> cap * 2) + 10;
-            uint8_t * tmp = new uint8_t[m_bytes -> cap];
-            for(uint32_t i = 0; i < m_bytes -> len; ++i){
-                tmp[i] = m_bytes -> data[i];
-            }
-            delete [] m_bytes -> data;
-            m_bytes -> data = tmp;
+        if(curr -> m_bytes -> len == curr -> m_bytes->cap){
+           curr -> m_bytes->reallocate();
         }
-        if(pivot == m_bytes -> len) m_bytes -> len++;
-        m_bytes -> data[pivot++] = *src++;
-
+        if(curr -> pivot == curr -> m_bytes -> len) curr -> m_bytes -> len++;
+        curr -> m_bytes -> data[curr -> pivot++] = *src++;
     }
     return bytes;
 }
 void CFile::truncate ( void ){
-    if(pivot != m_bytes->len){
-        if(m_bytes->refCount > 1){
-            m_bytes -> refCount--;
-            Bytes * tmp = new Bytes(*m_bytes);
-            m_bytes = tmp;
+    if(curr -> pivot != curr->m_bytes->len){
+        if(curr->m_bytes->refCount > 1){
+            curr->m_bytes -> refCount--;
+            Bytes * tmp = new Bytes(*curr->m_bytes);
+            curr->m_bytes = tmp;
         }
-        m_bytes -> len = pivot;
+        curr->m_bytes -> len = curr->pivot;
     }
 }
 uint32_t CFile::fileSize ( void ) const{
-    return m_bytes -> len;
+    return curr -> m_bytes -> len;
 }
 
 #ifndef __PROGTEST__
