@@ -13,7 +13,7 @@ class CFile
 public:
     CFile ( void );
     CFile (const CFile &file);
-    CFile operator=(const CFile &file);
+    CFile & operator=(const CFile &file);
     ~CFile();
     bool seek ( uint32_t offset );
     uint32_t read ( uint8_t* dst, uint32_t bytes );
@@ -30,11 +30,11 @@ public:
     }
     void recursivePrint(){
         Node * x = this -> curr;
-        cout << "Vyhazuji rekurzivni print:" << endl;
+        cout << "Rekurzivni vypis:" << endl;
         while(x){
-            cout << "Rodice: " << x ->parents << "; ";
-            for(uint32_t i = 0; i < curr -> m_bytes -> len; ++i){
-            cout << (int) curr -> m_bytes -> data[i] << ", ";
+            cout << "Rodice: " << x ->parents << "| ";
+            for(uint32_t i = 0; i < x -> m_bytes -> len; ++i){
+            cout << (int) x -> m_bytes -> data[i] << ", ";
             }
             cout << endl;
             x = x -> prev;
@@ -69,7 +69,7 @@ private:
                 refCount = 0;
                 len = 0;
                 cap = 0;
-                
+                delete [] data;
             }
             void reallocate(){
                 cap = cap * 2 + 10;
@@ -106,7 +106,8 @@ private:
         ~Node(){
             //cout << "Volam node destructor, s refcount: ";
             //cout << m_bytes -> refCount << endl;
-            if(!--m_bytes -> refCount) delete [] m_bytes -> data;
+            if(!--m_bytes -> refCount) delete m_bytes;
+            //cout << "REFS " << m_bytes -> refCount;
             pivot = 0;
             parents = 0;
         }
@@ -124,7 +125,7 @@ CFile::CFile (const CFile &file){
     curr = new Node();
     curr -> m_bytes = file.curr -> m_bytes;
     curr -> m_bytes ->refCount++;
-    cout << "REFS: " << (int) curr -> m_bytes ->refCount << endl;
+    //cout << "REFS: " << (int) curr -> m_bytes ->refCount << endl;
     curr -> pivot = file.curr -> pivot;
     curr -> prev = file.curr -> prev;
 
@@ -136,7 +137,10 @@ CFile::CFile (const CFile &file){
         x = y;
     }
 }
-CFile CFile::operator=(const CFile &file){
+CFile & CFile::operator=(const CFile &file){
+    if(&file == this){
+        return *this;
+    }
     Node * nxt = nullptr; 
     while(curr){
         nxt = curr -> prev;
@@ -149,13 +153,27 @@ CFile CFile::operator=(const CFile &file){
         curr = nxt;
     }
     curr = nullptr;
-    return CFile(file);
+    curr = new Node();
+    curr -> m_bytes = file.curr -> m_bytes;
+    curr -> m_bytes ->refCount++;
+    //cout << "REFS: " << (int) curr -> m_bytes ->refCount << endl;
+    curr -> pivot = file.curr -> pivot;
+    curr -> prev = file.curr -> prev;
+
+    Node * x = curr -> prev;
+    Node * y;
+    while(x){
+        y = x -> prev;
+        x -> parents++;
+        x = y;
+    }
+    return *this;
 }
 CFile::~CFile(){
     Node * nxt = nullptr; 
     while(curr){
         nxt = curr -> prev;
-        cout << "Parents: " << curr -> parents << endl;
+        //cout << "Parents: " << curr -> parents << endl;
         if(curr -> parents <= 1){
             delete curr;
         }
@@ -222,7 +240,7 @@ uint32_t CFile::read ( uint8_t* dst, uint32_t bytes ){
 uint32_t CFile::write ( const uint8_t * src, uint32_t bytes ){
     if(curr->m_bytes->refCount > 1 && src != nullptr){
         curr -> m_bytes -> refCount--;
-        Bytes * n_bytes = new Bytes(*curr->m_bytes);
+        Bytes * n_bytes = new Bytes(*curr -> m_bytes);
         curr->m_bytes = n_bytes;
     }
     for(uint32_t i = 0; i < bytes; ++i){
@@ -280,6 +298,7 @@ int main ( void )
     CFile f0;   
     assert ( writeTest ( f0, { 10, 20, 30 }, 3 ) );
     assert ( f0 . fileSize () == 3 );
+    
     assert ( writeTest ( f0, { 60, 70, 80 }, 3 ) );
     assert ( f0 . fileSize () == 6 );
     assert ( f0 . seek ( 2 ));
@@ -340,9 +359,11 @@ int main ( void )
     f6.recursivePrint();
     CFile f7 = f6;
     f6.recursivePrint();
-    //CFile f8 = f7;
-    //assert(f7.undoVersion());
-    //assert ( writeTest ( f8, { 2, 3, 4, 5}, 4 ) );
+    CFile f8 = f7;
+    assert(f7.undoVersion());
+    assert ( writeTest ( f8, { 2, 3, 4, 5}, 4 ) );
+    f7.recursivePrint();
+    f8.recursivePrint();
     
 
     
