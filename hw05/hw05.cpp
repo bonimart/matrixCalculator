@@ -85,6 +85,14 @@ class CDate
       return (!(y % 4) && y % 100) || !(y % 400);
     }
 };
+
+struct DateHash{
+  size_t operator()(const CDate & date){
+    //return (hash<int>{}(date.m_year) ^ hash<int>{}(date.m_month)) ^ hash<int>{}(date.m_day);
+    return ((size_t)date.m_year)*10000 + date.m_month*100 + date.m_day;
+  }
+};
+
 class CSupermarket
 {
   public:
