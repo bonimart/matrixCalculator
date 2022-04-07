@@ -20,23 +20,17 @@
 using namespace std;
 #endif /* __PROGTEST__ */
 
-class InvalidDateException : public invalid_argument {
-  public:
-    InvalidDateException()
-      : invalid_argument("Invalid date") {}
-};
-
 class CDate
 {
   public:
+    int m_year, m_month, m_day;
+    CDate ( const int y, const int m, const int d )
+      : m_year(y)
+      , m_month(m)
+      , m_day(d) {}
 
-    CDate ( const int y, const int m, const int d ) {
-      if(!isValid(y, m, d)){
-        throw InvalidDateException();
-      }
-      m_year = y;
-      m_month = m;
-      m_day = d;
+    bool isValid() const{
+      return !(m_year < 0 || m_month < 1 || m_month > 12 || m_day < 1 || m_day > monthLength(m_year, m_month));
     }
     
     bool operator==(const CDate & other) const {
@@ -57,14 +51,9 @@ class CDate
     bool operator!=(const CDate & other) const{
       return !(*this == other);
     }
-  
   private:
-    int m_year, m_month, m_day;
 
     //y = year; m = month; d = day
-    bool isValid(const int y, const int m, const int d) const{
-      return !(y < 0 || m < 1 || m > 12 || d < 1 || d > monthLength(y, m));
-    }
     int monthLength(const int y, const int m) const{
       switch(m){
       case 2:
