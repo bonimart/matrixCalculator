@@ -85,34 +85,21 @@ struct DateHash{
 class CSupermarket
 {
   public:
-    // default constructor
-    // store   ( name, expiryDate, count )
-    // sell    ( shoppingList )
-    // expired ( date ) const
+    CSupermarket & store(const string & name, const CDate & expiryDate, const int count);
+    void sell(list<pair<string, int>> & shoppingList);
+    list<pair<string,int>> expired(const CDate & date) const;
 
   private:
-    // todo
-    //nejaka mapa, klic je nazev, hodnota bude nejakej STL kontejner serazen podle data
-    /*STORE
-    checkne jestli zbozi se stejnym nazvem uz naskladneno neni, pokud ne prida nove, jinak pridava ke stavajicimu
-      kdyz pridavam asi by bylo smart rovnou delat nejakej binary search podle expiryDate a potom tam vlozit
-      ? mozna se trochu nabizi ukladat zbozi jako unordered mapu z ordered map, tak se vyhnu tomu hledani
-      celkovej cost - log n (s tim ze by chtelo jeste nastudovat tu mapu)
+    unordered_map<string, map<CDate, int>> goodsByName;
+    unordered_map<CDate, unordered_map<string, int>, DateHash> goodsByDate;
+    unordered_map<size_t, unordered_set<string>> namesByLen;
+
+    void storeByName(const string & name, const CDate & expiryDate, const int count);
+    void storeByDate(const CDate & expiryDate, const string & name, const int count);
+    bool canBeSold(const pair<string, int> & item, string & alias);
+    int differingNames(const string & itemName, string & name);
+};
     
-    -----------------------
-    */
-    /*SELL
-    canBeSold - checkuje jestli pujde prodat jeden item z listu
-      pokud projde pro vsechny prvky, vrati sell true a odebere zbozi
-      pokud nenajde primou shodu, validni je i nazev odlisny v jednom pismeni, pokud se ale najdou dva takove je to fail
-      asi by bylo fajn mit tu unordered set se jmeny, aby se snadno hledaly chyby v spellingu
-      celkovej cost - n
-    celkovej cost n**2
-    */
-    /*EXPIRED
-    asi ordered set s lower bound - chceme zbozi, ktere projde pred zadanym datem
-    celkovej cost - n * log n
-    */
 
 };
 #ifndef __PROGTEST__
