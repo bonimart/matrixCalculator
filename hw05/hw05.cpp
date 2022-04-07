@@ -158,8 +158,138 @@ CSupermarket & CSupermarket::store(const string & name, const CDate & expiryDate
   storeByDate(expiryDate, name, count);
   return *this;
 }
+//--------------------------------------------------------------------------
+/*SELL
+  iterace skrz list - n
+    hledani v unordered_mape - konstantni
+    hledani rozdilneho jmena - n*(delka jmena ~ 30)
+  n**2
+  +
+  iterace skrz list - n
+    iterace mapou - n * log n
     
 
+  __________
+  celkem
+//--------------------------------------------------------------------------
+*/
+int CSupermarket::differingNames(const string & itemName, string & name){
+  //count of names that differ in one character
+  int count = 0;
+  int diffs;
+  const size_t nameLen = itemName.length();
+  //considering only names of the same length
+  if(namesByLen.find(nameLen) == namesByLen.end()){
+    return 0;
+  }
+  for(const auto & stored : namesByLen[nameLen]){
+    diffs = 0;
+    //character by character comparison
+    for(size_t i = 0; i < itemName.length(); ++i){
+      if(stored[i] != itemName[i]){
+        diffs++;
+      }
+      if(diffs > 1){
+        break;
+      }
+    }
+    //only one character mismatch was found, let's update name accordingly
+    if(diffs == 1){
+      name = stored;
+      count++;
+    }
+    //2 or more names means we cannot determine which one to use
+    if(count > 1){
+      return count;
+    }
+  }
+  return count;
+}
+
+bool CSupermarket::canBeSold(const pair<string, int> & item, string & alias){
+  const auto & it = goodsByName.find(item.first);
+  string name = item.first;
+  //even if the name is incorrect, there could be a typo, so we have to check
+  if(it == goodsByName.end()){
+    //there is less or more than one items differing in one character
+    if(differingNames(item.first, name) != 1){
+      return false;
+    }
+  }
+  //we don't have to set a different name if there's not typo
+  if(item.first != name){
+    alias = name;
+  }
+  else{
+    alias = item.first;
+  }
+  return true;
+}
+
+void CSupermarket::sell(list<pair<string, int>> & shoppingList){
+  //to determine which items to sell and with which alias
+  unordered_map<string, pair<bool, string>> toBeSold;
+  string alias;
+  for(const auto & item : shoppingList) {
+    //it item is to be sold we have to pass in alias in case typo took place
+    if(canBeSold(item, alias) && item.second > 0){
+      toBeSold[item.first].first = true;
+      toBeSold[item.first].second = alias;
+    }
+    else{
+      toBeSold[item.first].first = false;
+    }
+  }
+
+  for(auto it = shoppingList.begin(); it != shoppingList.end();) {
+    //readable with these variables
+    string & givenName = it -> first;
+    int & demandedAmount = it -> second;
+
+    //if item is to be sold, let's sell it
+    if(toBeSold[givenName].first == true){
+      //item alias, may differ from given name
+      alias = toBeSold[givenName].second;
+      if(!goodsByName[alias].empty()){
+        //for(auto & [expiryDate, count] : goodsByName[alias]){
+        for(auto it = goodsByName[alias].begin(); it != goodsByName[alias].end();){
+          const CDate & expiryDate = it -> first;
+          int & count = it -> second;
+          if(demandedAmount < count){
+            count -= demandedAmount;
+            goodsByDate[expiryDate][alias] -= demandedAmount;
+            demandedAmount = 0;
+            break;
+          }
+          else{
+            demandedAmount -= count;
+            count = 0;
+            goodsByDate[expiryDate].erase(alias);
+            if(goodsByDate[expiryDate].empty()){
+              goodsByDate.erase(expiryDate);
+            }
+            it = goodsByName[alias].erase(it);
+          }
+        }
+        //demanded amount was too much for our limited storage
+        if(demandedAmount > 0){
+          goodsByName.erase(alias);
+          namesByLen[alias.length()].erase(alias);
+          it++;
+        }
+        else{
+          it = shoppingList.erase(it);
+        }
+      }
+      else{
+        it++;
+      }
+    }
+    else{
+      it++;
+    }
+  }
+}
 };
 #ifndef __PROGTEST__
 int main ( void )
