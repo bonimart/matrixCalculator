@@ -99,6 +99,65 @@ class CSupermarket
     bool canBeSold(const pair<string, int> & item, string & alias);
     int differingNames(const string & itemName, string & name);
 };
+//--------------------------------------------------------------------------
+/*STORE
+  hleda se v unordered_mape - konstantni
+  hleda se v mape - log n
+  __________
+  celkem log n
+-----------------------
+*/
+void CSupermarket::storeByName(const string & name, const CDate & expiryDate, const int count){
+  const auto & itName = goodsByName.find(name);
+  //goods with such name aren't stored yet
+  if(itName == goodsByName.end()){
+    goodsByName[name] = map<CDate, int>();
+    goodsByName[name][expiryDate] = count;
+    const auto & itNameLen = namesByLen.find(name.length());
+    if(itNameLen == namesByLen.end()){
+      namesByLen[name.length()] = {name};
+    }
+    else{
+      namesByLen[name.length()].emplace(name);
+    }
+    return;
+  }
+  //goods are already stored
+  const auto & itDate = goodsByName[name].find(expiryDate);
+  //instance with such expiry date isn't stored yet
+  if(itDate == goodsByName[name].end()){
+    goodsByName[name].emplace(expiryDate, count);
+    return;
+  }
+  //add count to an existing instance with such expiry date
+  goodsByName[name][expiryDate] += count;
+}
+
+void CSupermarket::storeByDate(const CDate & expiryDate, const string & name, const int count){
+  const auto & itDate = goodsByDate.find(expiryDate);
+  //no goods have their expiration date same as the given date
+  if(itDate == goodsByDate.end()){
+    goodsByDate[expiryDate][name] = count;
+    return;
+  }
+  //goods that expire on given date
+  //auto & expiringOnDate = goodsByDate[expiryDate];
+  const auto & itName = goodsByDate[expiryDate].find(name);
+  if(itName == goodsByDate[expiryDate].end()){
+    goodsByDate[expiryDate][name] = count;
+    return;
+  }
+  goodsByDate[expiryDate][name] += count;
+}
+
+CSupermarket & CSupermarket::store(const string & name, const CDate & expiryDate, const int count){
+  if(count < 1 || !expiryDate.isValid()){
+    return *this;
+  }
+  storeByName(name, expiryDate, count);
+  storeByDate(expiryDate, name, count);
+  return *this;
+}
     
 
 };
