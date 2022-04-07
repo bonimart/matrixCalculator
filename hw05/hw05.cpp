@@ -76,7 +76,7 @@ class CDate
 };
 
 struct DateHash{
-  size_t operator()(const CDate & date){
+  size_t operator()(const CDate & date) const{
     //return (hash<int>{}(date.m_year) ^ hash<int>{}(date.m_month)) ^ hash<int>{}(date.m_day);
     return ((size_t)date.m_year)*10000 + date.m_month*100 + date.m_day;
   }
