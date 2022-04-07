@@ -290,8 +290,58 @@ void CSupermarket::sell(list<pair<string, int>> & shoppingList){
     }
   }
 }
+//--------------------------------------------------------------------------
+/*EXPIRED
+  RATTY MUF
+  __________
+  celkem
+//--------------------------------------------------------------------------
+*/
+struct pairGreater{
+  bool operator()(const pair<string, int> & a, const pair<string, int> & b) const{
+    return a.second > b.second;
+}
 };
+
+list<pair<string,int>> CSupermarket::expired(const CDate & date) const{
+  list<pair<string, int>> goodsExpired;
+  //let's just quit trying if we are given invalid date
+  if(!date.isValid()){
+    return goodsExpired;
+  }
+
+  vector<pair<string, int>> expiredVect;
+  map<string, int> expirationMap;
+
+  for(const auto & [expiryDate, items] : goodsByDate){
+    if(expiryDate < date){
+      for(const auto & [name, count] : items){
+        if(expirationMap.find(name) == expirationMap.end()){
+          expirationMap[name] = count;
+        }
+        else{
+          expirationMap[name] += count;
+        }
+      }
+    }
+  }
+
+  for(const auto & [name, count] : expirationMap){
+    expiredVect.emplace_back(name, count);
+  }
+
+  sort(expiredVect.begin(), expiredVect.end(), [](const pair<string, int> & a, const pair<string, int> & b) 
+    {return a.second > b.second;});
+
+  for(const auto & item : expiredVect){
+    goodsExpired.emplace_back(item);
+  }
+
+  return goodsExpired;
+}
+
 #ifndef __PROGTEST__
+
 int main ( void )
 {
   CSupermarket s;
