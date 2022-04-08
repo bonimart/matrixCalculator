@@ -82,6 +82,12 @@ struct DateHash{
   }
 };
 
+struct PairHash{
+  size_t operator()(const pair<size_t, string> & p) const{
+    return p.first ^ hash<string>{}(p.second);
+  }
+};
+
 class CSupermarket
 {
   public:
@@ -93,6 +99,7 @@ class CSupermarket
     unordered_map<string, map<CDate, int>> goodsByName;
     unordered_map<CDate, unordered_map<string, int>, DateHash> goodsByDate;
     unordered_map<size_t, unordered_set<string>> namesByLen;
+    unordered_map<pair<size_t, string>, unordered_set<string>, PairHash> substrMap;
 
     void storeByName(const string & name, const CDate & expiryDate, const int count);
     void storeByDate(const CDate & expiryDate, const string & name, const int count);
@@ -119,6 +126,12 @@ void CSupermarket::storeByName(const string & name, const CDate & expiryDate, co
     }
     else{
       namesByLen[name.length()].emplace(name);
+    }
+    for(size_t i = 0; i < name.length(); ++i){
+      string start = name.substr(0, i);
+      string end = name.substr(i+1, name.length());
+      //cout << start + end << endl;
+      substrMap[{i, start+end}].insert(name);
     }
     return;
   }
@@ -176,12 +189,29 @@ CSupermarket & CSupermarket::store(const string & name, const CDate & expiryDate
 int CSupermarket::differingNames(const string & itemName, string & name){
   //count of names that differ in one character
   int count = 0;
-  int diffs;
+  //int diffs;
   const size_t nameLen = itemName.length();
+
   //considering only names of the same length
   if(namesByLen.find(nameLen) == namesByLen.end()){
     return 0;
   }
+  for(size_t i = 0; i < nameLen; ++i){
+    string start = itemName.substr(0, i);
+    string end = itemName.substr(i+1, nameLen);
+    string substring = start + end;
+    const auto & it = substrMap.find({i, substring});
+    if(it != substrMap.end()){
+      if(substrMap[{i, substring}].size() == 1){
+        name = *substrMap[{i, substring}].begin();
+        count++;
+      }
+      else{
+        return 0;
+      }
+    }
+  }
+  /*
   for(const auto & stored : namesByLen[nameLen]){
     diffs = 0;
     //character by character comparison
@@ -203,6 +233,7 @@ int CSupermarket::differingNames(const string & itemName, string & name){
       return count;
     }
   }
+  */
   return count;
 }
 
@@ -235,6 +266,7 @@ void CSupermarket::sell(list<pair<string, int>> & shoppingList){
     if(canBeSold(item, alias) && item.second > 0){
       toBeSold[item.first].first = true;
       toBeSold[item.first].second = alias;
+      //cout << alias << endl;
     }
     else{
       toBeSold[item.first].first = false;
@@ -275,6 +307,14 @@ void CSupermarket::sell(list<pair<string, int>> & shoppingList){
         if(demandedAmount > 0){
           goodsByName.erase(alias);
           namesByLen[alias.length()].erase(alias);
+          for(size_t i = 0; i < alias.length(); ++i){
+            string start = alias.substr(0, i);
+            string end = alias.substr(i+1, alias.length());
+            substrMap[{i, start+end}].erase(alias);
+            if(substrMap[{i, start + end}].empty()){
+              substrMap.erase({i, start+end});
+            }
+          }
           it++;
         }
         else{
