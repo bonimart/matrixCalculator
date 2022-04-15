@@ -67,11 +67,68 @@ class CDataTypeDouble : public CDataType
       return make_shared<CDataTypeDouble>(*this); 
     }
 };
-class CDataTypeEnum
+//--------------------------------------------------------------------
+class CDataTypeEnum : public CDataType
 {
-  // todo
+  public:
+    virtual void print(ostream & os) const override;
+    virtual size_t getSize() const override { return 4; }
+
+    virtual shared_ptr<CDataType> clone() const override { 
+      return make_shared<CDataTypeEnum>(*this);
+    }
+
+    virtual bool operator==(const CDataType & other) const override;
+    //enum specific methods
+    CDataTypeEnum & add(const string & state);
+    CDataTypeEnum & add(const char * state){
+      return add(string(state));
+    }
+  
+  protected:
+    //constant look-up of elements used in add function
+    unordered_set<string> states;
+    //printing order is based on insertion history
+    vector<string> insertHistory;
 };
-class CDataTypeStruct
+//-------------------
+void CDataTypeEnum::print(ostream & os) const {
+  os << "enum" << "{";
+  for(auto d : insertHistory){
+    //polymorphism 8)
+    os << d;
+    //no ',' after the last element
+    if(d != insertHistory[insertHistory.size() - 1]) os << ",";
+  }
+  os << "}";
+}
+//-------------------
+bool CDataTypeEnum::operator==(const CDataType & other) const {
+  //check if other is CDataTypeEnum with the same number of states
+  shared_ptr<CDataTypeEnum> ptr = dynamic_pointer_cast<CDataTypeEnum>(other.clone());
+  if(ptr == nullptr || ptr -> insertHistory.size() != insertHistory.size()) return false;
+  //other is CDataTypeEnum, we have to check state by state
+  auto it1 = insertHistory.begin();
+  auto it2 = ptr -> insertHistory.begin();
+  while(it1 != insertHistory.end() && it2 != ptr -> insertHistory.end()){
+    if(*it1++ != *it2++) {
+      return false;
+    }
+  }
+  return true;
+  
+}
+//-------------------
+CDataTypeEnum & CDataTypeEnum::add(const string & state){
+  //check if there already is a state with given name
+  auto it = states.find(state);
+  if(it != states.end()) throw invalid_argument("Duplicate enum value: " + state);
+  //there is no state with given name, let's add it
+  states.insert(state);
+  insertHistory.push_back(state);
+
+  return *this;
+}
 {
   // todo
 };
