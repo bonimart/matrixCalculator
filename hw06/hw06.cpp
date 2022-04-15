@@ -220,8 +220,19 @@ CDataType & CDataTypeStruct::field(const string & name) const{
 static bool        whitespaceMatch                         ( const string    & a,
                                                              const string    & b )
 {
-  // todo
-  return true;
+  auto it_a = a.begin();
+  auto it_b = b.begin();
+  while(isspace(*it_a)) it_a++;
+  while(isspace(*it_b)) it_b++;
+
+  while(it_a != a.end() && it_b != b.end()){
+    if(*it_a++ != *it_b++) return false;
+    while(isspace(*it_a)) it_a++;
+    while(isspace(*it_b)) it_b++;
+
+  }
+  if(it_a == a.end() && it_b == b.end()) return true;
+  return false;
 }
 template <typename T_>
 static bool        whitespaceMatch                         ( const T_        & x,
