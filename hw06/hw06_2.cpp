@@ -23,10 +23,18 @@
 #include <memory>
 using namespace std;
 #endif /* __PROGTEST__ */
+
+
 class CDataType{
 public:
   //helper method for printing into a given stream
   virtual void print(ostream & os) const = 0;
+  //helper method, prints data type into output parameter
+  virtual void printToStr(string & str) const {
+    ostringstream os;
+    print(os);
+    str = os.str() + str;
+  };
   virtual size_t getSize() const = 0;
   //polymorphic copy constructor
   virtual shared_ptr<CDataType> clone() const = 0;
@@ -34,17 +42,32 @@ public:
   virtual bool operator==(const CDataType & other) const {
     return typeid(*this) == typeid(other);
   }
-  //polymorphism 8)
   virtual bool operator!=(const CDataType & other) const { return !(*this == other); }
+  //by default, data types can't use field()
+  virtual CDataType & field(const string & name) const {
+    ostringstream os;
+    this -> print(os);
+    throw invalid_argument("Cannot use field() for type: " + os.str());
+  }
+  virtual CDataType & field(const char * name) const { return field(string(name)); }
+  //by default, data types can't use element()
+  virtual CDataType & element() const {
+    ostringstream os;
+    this -> print(os);
+    throw invalid_argument("Cannot use element() for type: " + os.str());
+  }
 };
 //--------------------------------------------------------------------
+
+
 /** function for printing into a given stream */
 ostream & operator<<(ostream & os, const CDataType & dtype){
-  //polymorphism 8)
   dtype.print(os);
   return os;
 }
 //--------------------------------------------------------------------
+
+
 class CDataTypeInt : public CDataType
 {
   public:
@@ -56,6 +79,8 @@ class CDataTypeInt : public CDataType
     }
 };
 //--------------------------------------------------------------------
+
+
 class CDataTypeDouble : public CDataType
 {
   public:
@@ -67,6 +92,8 @@ class CDataTypeDouble : public CDataType
     }
 };
 //--------------------------------------------------------------------
+
+
 class CDataTypeEnum : public CDataType
 {
   public:
@@ -91,17 +118,28 @@ class CDataTypeEnum : public CDataType
     vector<string> insertHistory;
 };
 //-------------------
+/**
+ * @brief prints enum into an output stream
+ * 
+ * @param os
+ */
 void CDataTypeEnum::print(ostream & os) const {
   os << "enum" << "{";
   for(auto d : insertHistory){
-    //polymorphism 8)
     os << d;
     //no ',' after the last element
-    if(d != insertHistory[insertHistory.size() - 1]) os << ",";
+    if(d != insertHistory[insertHistory.size() - 1]) os << "," << endl;
   }
-  os << "}";
+  os << "}" << endl;
 }
 //-------------------
+/**
+ * @brief compares enum with another data type
+ * 
+ * @param other - other data type
+ * @return true if other is enum with the same size of states which are of the same value
+ * @return false otherwise
+ */
 bool CDataTypeEnum::operator==(const CDataType & other) const {
   //check if other is CDataTypeEnum with the same number of states
   shared_ptr<CDataTypeEnum> ptr = dynamic_pointer_cast<CDataTypeEnum>(other.clone());
@@ -118,6 +156,12 @@ bool CDataTypeEnum::operator==(const CDataType & other) const {
   
 }
 //-------------------
+/**
+ * @brief adds a state to enum data type
+ * 
+ * @param state - name of a new state
+ * @return *this so calls can be chained
+ */
 CDataTypeEnum & CDataTypeEnum::add(const string & state){
   //check if there already is a state with given name
   auto it = states.find(state);
@@ -125,10 +169,12 @@ CDataTypeEnum & CDataTypeEnum::add(const string & state){
   //there is no state with given name, let's add it
   states.insert(state);
   insertHistory.push_back(state);
-
+  //return so add calls can be chained one after another
   return *this;
 }
 //--------------------------------------------------------------------
+
+
 class CDataTypeStruct : public CDataType
 {
   public:
@@ -140,15 +186,13 @@ class CDataTypeStruct : public CDataType
     }
 
     virtual bool operator==(const CDataType & other) const override;
+    //struct is the only data type with defined field()
+    CDataType & field(const string & name) const override;
     //struct specific methods
     CDataTypeStruct & addField(const string & name, const CDataType & dataType);
     CDataTypeStruct &  addField(const char * name, const CDataType & dataType){
       return addField(string(name), dataType);
     }
-    CDataType & field(const string & name) const;
-    CDataType & field(const char * name) const{
-      return field(string(name));
-    }    
   
   protected:
     //fast look-up and access of elements
@@ -157,54 +201,82 @@ class CDataTypeStruct : public CDataType
     vector<pair<string, shared_ptr<CDataType>>> insertHistory;
 };
 //-------------------
+/**
+ * @brief prints struct into an output stream
+ * 
+ * @param os 
+ */
 void CDataTypeStruct::print(ostream & os) const {
   os << "struct" << "{";
   for(const auto & [name, dtype] : insertHistory){
-    //polymorphism 8)
-    dtype -> print(os);
-    os << name << ";";
+    string s = " " + name + " ";
+    //using printToStr because arrays and pointers are printed in a weird way
+    dtype -> printToStr(s);
+    os << s << ";" << endl;
   }
   os << "}";
 }
 //-------------------
+/**
+ * @brief gets a size of struct which is based on its fields
+ * 
+ * @return size_t
+ */
 size_t CDataTypeStruct::getSize() const {
   size_t sum = 0;
   //get size of every element recursively
-  //polymorphism 8)
   for(const auto & [name, dtype] : insertHistory){
     sum += dtype -> getSize();
   }
   return sum;
 }
 //-------------------
+/**
+ * @brief compares struct with another data type
+ * 
+ * @param other - other data type
+ * @return true if other is a structure with the same number of fields which are of the same type
+ * @return false otherwise
+ */
 bool CDataTypeStruct::operator==(const CDataType & other) const {
   //check if other is CDataTypeStruct with the same number of fields
   shared_ptr<CDataTypeStruct> ptr = dynamic_pointer_cast<CDataTypeStruct>(other.clone());
   if(ptr == nullptr || ptr -> insertHistory.size() != insertHistory.size()) return false;
-  //other is CDataTypeStruct, we have to check every element recursively
+  //other is CDataTypeStruct, we have to check every field recursively
   auto it1 = insertHistory.begin();
   auto it2 = ptr -> insertHistory.begin();
   while(it1 != insertHistory.end() && it2 != ptr -> insertHistory.end()){
-    //polymorphism 8)
     if(*(it1++ -> second) != *(it2++ -> second)) return false;
   }
-
+  //every field matches in its data type
   return true;
 }
 //-------------------
+/**
+ * @brief adds a field to a struct data type, field is passed as [name, dtype]
+ * 
+ * @param name 
+ * @param dtype 
+ * @return *this so calls can be chained
+ */
 CDataTypeStruct & CDataTypeStruct::addField(const string & name, const CDataType & dtype){
   //check if there already is a field with given name
   auto it = fields.find(name);
   if(it != fields.end()) throw invalid_argument("Duplicate field: " + name);
   //there is no such field, let's add it
-  //polymorphism 8)
   shared_ptr<CDataType> ptr = dtype.clone();
   fields[name] = ptr;
   insertHistory.emplace_back(name, ptr);
-
+  //return so add calls can be chained one after another
   return *this;
 }
 //-------------------
+/**
+ * @brief gets a field of struct data type with the given name
+ * 
+ * @param name of a field which is to be returned
+ * @return CDataType& - field with the given name
+ */
 CDataType & CDataTypeStruct::field(const string & name) const{
   //check if there is a field with given name
   auto it = fields.find(name);
