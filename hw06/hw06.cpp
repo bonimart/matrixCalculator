@@ -129,9 +129,93 @@ CDataTypeEnum & CDataTypeEnum::add(const string & state){
 
   return *this;
 }
+//--------------------------------------------------------------------
+class CDataTypeStruct : public CDataType
 {
-  // todo
+  public:
+    virtual void print(ostream & os) const override;
+    virtual size_t getSize() const override;
+
+    virtual shared_ptr<CDataType> clone() const override { 
+      return make_shared<CDataTypeStruct>(*this);
+    }
+
+    virtual bool operator==(const CDataType & other) const override;
+    //struct specific methods
+    CDataTypeStruct & addField(const string & name, const CDataType & dataType);
+    CDataTypeStruct &  addField(const char * name, const CDataType & dataType){
+      return addField(string(name), dataType);
+    }
+    CDataType & field(const string & name) const;
+    CDataType & field(const char * name) const{
+      return field(string(name));
+    }    
+  
+  protected:
+    //fast look-up and access of elements
+    unordered_map<string, shared_ptr<CDataType>> fields;
+    //printing order is based on insertion history
+    vector<pair<string, shared_ptr<CDataType>>> insertHistory;
 };
+//-------------------
+void CDataTypeStruct::print(ostream & os) const {
+  os << "struct" << "{";
+  for(const auto & [name, dtype] : insertHistory){
+    //polymorphism 8)
+    dtype -> print(os);
+    os << name << ";";
+  }
+  os << "}";
+}
+//-------------------
+size_t CDataTypeStruct::getSize() const {
+  size_t sum = 0;
+  //get size of every element recursively
+  //polymorphism 8)
+  for(const auto & [name, dtype] : insertHistory){
+    sum += dtype -> getSize();
+  }
+  return sum;
+}
+//-------------------
+bool CDataTypeStruct::operator==(const CDataType & other) const {
+  //check if other is CDataTypeStruct with the same number of fields
+  shared_ptr<CDataTypeStruct> ptr = dynamic_pointer_cast<CDataTypeStruct>(other.clone());
+  if(ptr == nullptr || ptr -> insertHistory.size() != insertHistory.size()) return false;
+  //other is CDataTypeStruct, we have to check every element recursively
+  auto it1 = insertHistory.begin();
+  auto it2 = ptr -> insertHistory.begin();
+  while(it1 != insertHistory.end() && it2 != ptr -> insertHistory.end()){
+    //polymorphism 8)
+    if(*(it1++ -> second) != *(it2++ -> second)) return false;
+  }
+
+  return true;
+}
+//-------------------
+CDataTypeStruct & CDataTypeStruct::addField(const string & name, const CDataType & dtype){
+  //check if there already is a field with given name
+  auto it = fields.find(name);
+  if(it != fields.end()) throw invalid_argument("Duplicate field: " + name);
+  //there is no such field, let's add it
+  //polymorphism 8)
+  shared_ptr<CDataType> ptr = dtype.clone();
+  fields[name] = ptr;
+  insertHistory.emplace_back(name, ptr);
+
+  return *this;
+}
+//-------------------
+CDataType & CDataTypeStruct::field(const string & name) const{
+  //check if there is a field with given name
+  auto it = fields.find(name);
+  if(it == fields.end()){
+    //there is no such field
+    throw invalid_argument("Unknown field: " + name);
+  }
+  return *fields.at(name);
+}
+//--------------------------------------------------------------------
 #ifndef __PROGTEST__
 static bool        whitespaceMatch                         ( const string    & a,
                                                              const string    & b )
