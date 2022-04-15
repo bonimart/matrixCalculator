@@ -56,9 +56,16 @@ class CDataTypeInt : public CDataType
       return make_shared<CDataTypeInt>(*this); 
     }
 };
-class CDataTypeDouble
+//--------------------------------------------------------------------
+class CDataTypeDouble : public CDataType
 {
-  // todo
+  public:
+    virtual void print(ostream & os) const override { os << "double"; }
+    virtual size_t getSize() const override { return 8; }
+
+    virtual shared_ptr<CDataType> clone() const override { 
+      return make_shared<CDataTypeDouble>(*this); 
+    }
 };
 class CDataTypeEnum
 {
