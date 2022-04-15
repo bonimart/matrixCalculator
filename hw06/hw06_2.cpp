@@ -355,9 +355,77 @@ bool CDataTypeArray::operator==(const CDataType & other) const{
   return ptr != nullptr && ptr -> size == size && *(ptr -> dtype) == *dtype;
 }
 //--------------------------------------------------------------------
+
+
+class CDataTypePtr : public CDataType
 {
-  // todo
+  public:
+    CDataTypePtr(const CDataType & dt)
+      : dtype(dt.clone()) {}
+
+    virtual void print(ostream & os) const override;
+    virtual void printToStr(string & str) const override;
+    virtual size_t getSize() const override { return 8; }
+
+    virtual shared_ptr<CDataType> clone() const override { 
+      return make_shared<CDataTypePtr>(*this); 
+    }
+
+    virtual bool operator==(const CDataType & other) const override;
+    //ptr specific methods
+    CDataType & element() const override{
+      return *dtype;
+    }
+  protected:
+    shared_ptr<CDataType> dtype;
 };
+//-------------------
+/**
+ * @brief prints pointer to ostream passed in as output parameter
+ * 
+ * @param os
+ */
+void CDataTypePtr::print(ostream & os) const {
+  string s;
+  printToStr(s);
+  os << s;
+}
+//-------------------
+/**
+ * @brief recursively prints a pointer to a string passed in as output parameter
+ * 
+ * @param str - string to which the pointer prints itself
+ */
+void CDataTypePtr::printToStr(string & str) const{
+  //printing of pointers differs if the pointer points to an array or to any other data type
+  CDataType & elem = element();
+  //pointer points to an array, brackets need to be added ; example dtypeOfArray(*str)[sizeOfArray]
+  if(typeid(elem) == typeid(CDataTypeArray)){
+    str = "(*" + str + ")";
+    
+  }
+  //pointer doesn't point to an array,no brackets needed ; example - dtype*
+  else{
+    str = "*" + str;
+  }
+  elem.printToStr(str);
+}
+//-------------------
+/**
+ * @brief compare a pointer with another data type
+ * 
+ * @param other - other data type
+ * @return true if other is a pointer and points to the same data type
+ * @return false otherwise
+ */
+bool CDataTypePtr::operator==(const CDataType & other) const{
+  //checks if both types are pointers pointing to the same data type
+  shared_ptr<CDataTypePtr> ptr = dynamic_pointer_cast<CDataTypePtr>(other.clone());
+  return ptr != nullptr && *(ptr -> dtype) == *dtype;
+}
+//--------------------------------------------------------------------
+
+
 #ifndef __PROGTEST__
 static bool        whitespaceMatch                         ( const string    & a,
                                                              const string    & b )
