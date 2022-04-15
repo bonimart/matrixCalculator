@@ -23,22 +23,198 @@
 #include <memory>
 using namespace std;
 #endif /* __PROGTEST__ */
-class CDataTypeInt
-{
-  // todo
+class CDataType{
+public:
+  //helper method for printing into a given stream
+  virtual void print(ostream & os) const = 0;
+  virtual size_t getSize() const = 0;
+  //polymorphic copy constructor
+  virtual shared_ptr<CDataType> clone() const = 0;
+  //default comparison
+  virtual bool operator==(const CDataType & other) const {
+    return typeid(*this) == typeid(other);
+  }
+  //polymorphism 8)
+  virtual bool operator!=(const CDataType & other) const { return !(*this == other); }
 };
-class CDataTypeDouble
+//--------------------------------------------------------------------
+/** function for printing into a given stream */
+ostream & operator<<(ostream & os, const CDataType & dtype){
+  //polymorphism 8)
+  dtype.print(os);
+  return os;
+}
+//--------------------------------------------------------------------
+class CDataTypeInt : public CDataType
 {
-  // todo
+  public:
+    virtual void print(ostream & os) const override { os << "int"; }
+    virtual size_t getSize() const override { return 4; }
+
+    virtual shared_ptr<CDataType> clone () const override { 
+      return make_shared<CDataTypeInt>(*this); 
+    }
 };
-class CDataTypeEnum
+//--------------------------------------------------------------------
+class CDataTypeDouble : public CDataType
 {
-  // todo
+  public:
+    virtual void print(ostream & os) const override { os << "double"; }
+    virtual size_t getSize() const override { return 8; }
+
+    virtual shared_ptr<CDataType> clone() const override { 
+      return make_shared<CDataTypeDouble>(*this); 
+    }
 };
-class CDataTypeStruct
+//--------------------------------------------------------------------
+class CDataTypeEnum : public CDataType
 {
-  // todo
+  public:
+    virtual void print(ostream & os) const override;
+    virtual size_t getSize() const override { return 4; }
+
+    virtual shared_ptr<CDataType> clone() const override { 
+      return make_shared<CDataTypeEnum>(*this);
+    }
+
+    virtual bool operator==(const CDataType & other) const override;
+    //enum specific methods
+    CDataTypeEnum & add(const string & state);
+    CDataTypeEnum & add(const char * state){
+      return add(string(state));
+    }
+  
+  protected:
+    //constant look-up of elements used in add function
+    unordered_set<string> states;
+    //printing order is based on insertion history
+    vector<string> insertHistory;
 };
+//-------------------
+void CDataTypeEnum::print(ostream & os) const {
+  os << "enum" << "{";
+  for(auto d : insertHistory){
+    //polymorphism 8)
+    os << d;
+    //no ',' after the last element
+    if(d != insertHistory[insertHistory.size() - 1]) os << ",";
+  }
+  os << "}";
+}
+//-------------------
+bool CDataTypeEnum::operator==(const CDataType & other) const {
+  //check if other is CDataTypeEnum with the same number of states
+  shared_ptr<CDataTypeEnum> ptr = dynamic_pointer_cast<CDataTypeEnum>(other.clone());
+  if(ptr == nullptr || ptr -> insertHistory.size() != insertHistory.size()) return false;
+  //other is CDataTypeEnum, we have to check state by state
+  auto it1 = insertHistory.begin();
+  auto it2 = ptr -> insertHistory.begin();
+  while(it1 != insertHistory.end() && it2 != ptr -> insertHistory.end()){
+    if(*it1++ != *it2++) {
+      return false;
+    }
+  }
+  return true;
+  
+}
+//-------------------
+CDataTypeEnum & CDataTypeEnum::add(const string & state){
+  //check if there already is a state with given name
+  auto it = states.find(state);
+  if(it != states.end()) throw invalid_argument("Duplicate enum value: " + state);
+  //there is no state with given name, let's add it
+  states.insert(state);
+  insertHistory.push_back(state);
+
+  return *this;
+}
+//--------------------------------------------------------------------
+class CDataTypeStruct : public CDataType
+{
+  public:
+    virtual void print(ostream & os) const override;
+    virtual size_t getSize() const override;
+
+    virtual shared_ptr<CDataType> clone() const override { 
+      return make_shared<CDataTypeStruct>(*this);
+    }
+
+    virtual bool operator==(const CDataType & other) const override;
+    //struct specific methods
+    CDataTypeStruct & addField(const string & name, const CDataType & dataType);
+    CDataTypeStruct &  addField(const char * name, const CDataType & dataType){
+      return addField(string(name), dataType);
+    }
+    CDataType & field(const string & name) const;
+    CDataType & field(const char * name) const{
+      return field(string(name));
+    }    
+  
+  protected:
+    //fast look-up and access of elements
+    unordered_map<string, shared_ptr<CDataType>> fields;
+    //printing order is based on insertion history
+    vector<pair<string, shared_ptr<CDataType>>> insertHistory;
+};
+//-------------------
+void CDataTypeStruct::print(ostream & os) const {
+  os << "struct" << "{";
+  for(const auto & [name, dtype] : insertHistory){
+    //polymorphism 8)
+    dtype -> print(os);
+    os << name << ";";
+  }
+  os << "}";
+}
+//-------------------
+size_t CDataTypeStruct::getSize() const {
+  size_t sum = 0;
+  //get size of every element recursively
+  //polymorphism 8)
+  for(const auto & [name, dtype] : insertHistory){
+    sum += dtype -> getSize();
+  }
+  return sum;
+}
+//-------------------
+bool CDataTypeStruct::operator==(const CDataType & other) const {
+  //check if other is CDataTypeStruct with the same number of fields
+  shared_ptr<CDataTypeStruct> ptr = dynamic_pointer_cast<CDataTypeStruct>(other.clone());
+  if(ptr == nullptr || ptr -> insertHistory.size() != insertHistory.size()) return false;
+  //other is CDataTypeStruct, we have to check every element recursively
+  auto it1 = insertHistory.begin();
+  auto it2 = ptr -> insertHistory.begin();
+  while(it1 != insertHistory.end() && it2 != ptr -> insertHistory.end()){
+    //polymorphism 8)
+    if(*(it1++ -> second) != *(it2++ -> second)) return false;
+  }
+
+  return true;
+}
+//-------------------
+CDataTypeStruct & CDataTypeStruct::addField(const string & name, const CDataType & dtype){
+  //check if there already is a field with given name
+  auto it = fields.find(name);
+  if(it != fields.end()) throw invalid_argument("Duplicate field: " + name);
+  //there is no such field, let's add it
+  //polymorphism 8)
+  shared_ptr<CDataType> ptr = dtype.clone();
+  fields[name] = ptr;
+  insertHistory.emplace_back(name, ptr);
+
+  return *this;
+}
+//-------------------
+CDataType & CDataTypeStruct::field(const string & name) const{
+  //check if there is a field with given name
+  auto it = fields.find(name);
+  if(it == fields.end()){
+    //there is no such field
+    throw invalid_argument("Unknown field: " + name);
+  }
+  return *fields.at(name);
+}
+//--------------------------------------------------------------------
 class CDataTypeArray
 {
   // todo
@@ -51,8 +227,19 @@ class CDataTypePtr
 static bool        whitespaceMatch                         ( const string    & a,
                                                              const string    & b )
 {
-  // todo
-  return true;
+  auto it_a = a.begin();
+  auto it_b = b.begin();
+  while(isspace(*it_a)) it_a++;
+  while(isspace(*it_b)) it_b++;
+
+  while(it_a != a.end() && it_b != b.end()){
+    if(*it_a++ != *it_b++) return false;
+    while(isspace(*it_a)) it_a++;
+    while(isspace(*it_b)) it_b++;
+
+  }
+  if(it_a == a.end() && it_b == b.end()) return true;
+  return false;
 }
 template <typename T_>
 static bool        whitespaceMatch                         ( const T_        & x,
