@@ -23,7 +23,21 @@
 #include <memory>
 using namespace std;
 #endif /* __PROGTEST__ */
-class CDataTypeInt
+
+class CDataType{
+public:
+  //helper method for printing into a given stream
+  virtual void print(ostream & os) const = 0;
+  virtual size_t getSize() const = 0;
+  //polymorphic copy constructor
+  virtual shared_ptr<CDataType> clone() const = 0;
+  //default comparison
+  virtual bool operator==(const CDataType & other) const {
+    return typeid(*this) == typeid(other);
+  }
+  //polymorphism 8)
+  virtual bool operator!=(const CDataType & other) const { return !(*this == other); }
+};
 {
   // todo
 };
