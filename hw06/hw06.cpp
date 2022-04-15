@@ -38,6 +38,13 @@ public:
   //polymorphism 8)
   virtual bool operator!=(const CDataType & other) const { return !(*this == other); }
 };
+//--------------------------------------------------------------------
+/** function for printing into a given stream */
+ostream & operator<<(ostream & os, const CDataType & dtype){
+  //polymorphism 8)
+  dtype.print(os);
+  return os;
+}
 {
   // todo
 };
