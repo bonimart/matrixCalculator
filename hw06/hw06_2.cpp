@@ -287,11 +287,74 @@ CDataType & CDataTypeStruct::field(const string & name) const{
   return *fields.at(name);
 }
 //--------------------------------------------------------------------
-class CDataTypeArray
+
+
+class CDataTypeArray : public CDataType
 {
-  // todo
+  public:
+    CDataTypeArray(size_t s, const CDataType & dt)
+      : size(s)
+      , dtype(dt.clone()) {}
+    
+    virtual void print(ostream & os) const override;
+    virtual void printToStr(string & str) const override;
+    virtual size_t getSize() const override { 
+      return size * dtype->getSize(); 
+    }
+
+    virtual shared_ptr<CDataType> clone() const override { 
+      return make_shared<CDataTypeArray>(*this); 
+    }
+
+    virtual bool operator==(const CDataType & other) const override;
+    //array specific methods
+    CDataType & element() const override{
+      return *dtype;
+    }
+  protected:
+    size_t size;
+    shared_ptr<CDataType> dtype;
+
 };
-class CDataTypePtr
+//-------------------
+/**
+ * @brief prints array into an output stream
+ * 
+ * @param os 
+ */
+void CDataTypeArray::print(ostream & os) const {
+  string s;
+  printToStr(s);
+  os << s; 
+}
+//-------------------
+/**
+ * @brief prints an array recursively into a string passed in as output parameter
+ * 
+ * @param str - string to which the array prints itself
+ */
+void CDataTypeArray::printToStr(string & str) const{
+  ostringstream os;
+  os << size;
+  //arrays are printed as datatype[size]
+  str = str + '[' + os.str() + ']';
+
+  element().printToStr(str);
+}
+//-------------------
+/**
+ * @brief compares array with another data type
+ * 
+ * @param other - another data type
+ * @return true if other is an array with the same size and its elements are of the same type
+ * @return false otherwise
+ */
+bool CDataTypeArray::operator==(const CDataType & other) const{
+  //check if types, sizes and data types of elements match
+  shared_ptr<CDataTypeArray> ptr = dynamic_pointer_cast<CDataTypeArray>(other.clone());
+  return ptr != nullptr && ptr -> size == size && *(ptr -> dtype) == *dtype;
+}
+//--------------------------------------------------------------------
 {
   // todo
 };
