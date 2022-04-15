@@ -45,8 +45,16 @@ ostream & operator<<(ostream & os, const CDataType & dtype){
   dtype.print(os);
   return os;
 }
+//--------------------------------------------------------------------
+class CDataTypeInt : public CDataType
 {
-  // todo
+  public:
+    virtual void print(ostream & os) const override { os << "int"; }
+    virtual size_t getSize() const override { return 4; }
+
+    virtual shared_ptr<CDataType> clone () const override { 
+      return make_shared<CDataTypeInt>(*this); 
+    }
 };
 class CDataTypeDouble
 {
