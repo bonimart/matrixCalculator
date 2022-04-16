@@ -61,6 +61,29 @@ class CIndex
     
 };
 
+template <typename T_, typename C_>
+set<size_t> CIndex<T_, C_>::search(const T_ & subsequence){
+  set<size_t> out;
+  //pokud uz jsme to hledali, tak to nema cenu delat znovu
+  //auto it = searchHistory.find(subsequence);
+  //if(it != searchHistory.end()) return searchHistory.at(subsequence);
+
+  vector<typename T_::value_type> subseq(subsequence.begin(), subsequence.end());
+  //copy(subsequence.begin(), subsequence.end(), subseq.begin());
+
+  for(auto it = searchFirst(sequence.begin(), sequence.end(), subseq.begin(), subseq.end());
+    it != sequence.end();
+    it = searchFirst(++it, sequence.end(), subseq.begin(), subseq.end())){
+
+      size_t index = distance(sequence.begin(), it);
+      out.insert(index);
+  }
+
+  //if(!out.empty()) searchHistory[subsequence] = out;
+
+  return out;
+}
+
   
 #ifndef __PROGTEST__  
 class CStrComparator
