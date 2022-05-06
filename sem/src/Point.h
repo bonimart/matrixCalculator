@@ -1,10 +1,10 @@
-class Shape
+class Point
 {
 private:
     bool isValid(int x, int y);
 
 public:
-    Shape(const int x_coord, const int y_coord);
+    Point(const int x_coord, const int y_coord);
 
     int x;
     int y;

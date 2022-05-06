@@ -1,10 +1,10 @@
 #include <iostream>
-#include "Shape.h"
+#include "Point.h"
 
 class Matrix
 {
 protected:
-    Shape m_shape;
+    Point m_shape;
     int m_det;
     int m_rank;
 
@@ -19,10 +19,10 @@ public:
     Matrix &operator*(const Matrix &other) const;
 
     virtual Matrix &transpose() const = 0;
-    virtual Matrix &crop(const Shape &shape) const = 0;
+    virtual Matrix &crop(const Point &shape) const = 0;
 
     virtual void print(std::ostream &os) const = 0;
-    virtual double &get(int x, int y) const = 0;
+    virtual double &get(const Point &coords) const = 0;
 
     int det() const;
     int rank() const;
