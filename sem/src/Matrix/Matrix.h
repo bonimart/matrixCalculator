@@ -1,6 +1,6 @@
 #pragma once
 
-#include <iostream>
+#include <vector>
 #include "Index.h"
 
 class Matrix
@@ -8,11 +8,14 @@ class Matrix
 public:
     Index m_shape;
 
-    Matrix(const int x, const int y);
+    Matrix(const std::vector<std::vector<double>> &data);
     Matrix(const Matrix &other);
     virtual ~Matrix() = default;
 
     Matrix &operator=(const Matrix &other);
 
-    virtual double &get(const Index &coords) const = 0;
+    bool validIndex(const Index &coords) const;
+
+    virtual double get(const Index &coords) const = 0;
+    virtual bool set(const Index &coords, const double &val) = 0;
 };

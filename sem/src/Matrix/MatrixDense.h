@@ -11,5 +11,6 @@ protected:
 public:
     MatrixDense(const std::vector<std::vector<double>> &data);
 
-    virtual double &get(const Index &coords) const override;
+    virtual double get(const Index &coords) const override;
+    virtual void set(const Index &coords, const double &val) override;
 };
