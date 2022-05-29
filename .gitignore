@@ -1,6 +1,7 @@
 *.d
 *.o
 *.out
+*.zip
 */.vscode/
 */tests/
 
