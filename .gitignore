@@ -1,5 +1,9 @@
+*.d
+*.o
 *.out
-*.txt
-*/.vscode/*
-*.bin
-*/tests/*
+*/.vscode/
+*/tests/
+
+benesm44
+build/
+doc/
