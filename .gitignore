@@ -2,7 +2,7 @@
 *.o
 *.out
 *.zip
-*/.vscode/
+*.vscode/
 */tests/
 
 benesm44
