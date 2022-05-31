@@ -6,7 +6,7 @@
 class Operation
 {
 public:
-    virtual ~Operation();
+    virtual ~Operation() = default;
     virtual std::unique_ptr<Matrix> evaluate() = 0;
     virtual int numOfOperands() = 0;
 };

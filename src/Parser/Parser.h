@@ -24,13 +24,13 @@ private:
 
     double parseValue(std::istream &in) const;
     std::unique_ptr<Matrix> parseMatrix(std::istream &in) const;
-    std::unique_ptr<Matrix> parseFactor(std::istream &in) const;
+    std::unique_ptr<Operation> parseFactor(std::istream &in) const;
 
-    std::unique_ptr<Matrix> parseExprRec(std::istream &in, std::unique_ptr<Matrix> lhs, int prio) const;
-    std::unique_ptr<Matrix> parseExpression(std::istream &in, int prio) const;
+    std::unique_ptr<Operation> parseExprRec(std::istream &in, std::unique_ptr<Operation> lhs, int prio) const;
+    std::unique_ptr<Operation> parseExpression(std::istream &in, int prio) const;
 
 public:
     // Parser(std::unordered_map<std::string, std::unique_ptr<Operation>> op) : operations(op){}
-    std::unique_ptr<Matrix> parseInput(std::istream &in) const;
-    std::unique_ptr<Matrix> parseInput(std::string &input) const;
+    std::unique_ptr<Operation> parseInput(std::istream &in) const;
+    std::unique_ptr<Operation> parseInput(std::string &input) const;
 };

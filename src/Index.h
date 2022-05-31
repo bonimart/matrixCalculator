@@ -1,12 +1,13 @@
 #pragma once
+#include <cstddef>
 
 class Index
 {
 private:
 public:
-    Index(const size_t x_coord, const size_t y_coord)
+    Index(const std::size_t x_coord, const std::size_t y_coord)
         : x(x_coord), y(y_coord) {}
 
-    size_t x;
-    size_t y;
+    std::size_t x;
+    std::size_t y;
 };

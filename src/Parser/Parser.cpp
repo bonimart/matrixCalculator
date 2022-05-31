@@ -4,6 +4,8 @@
 #include "../Parser/Parser.h"
 #include "../Matrix/Matrix.h"
 #include "../settings.h"
+#include "../Operations/Identity.h"
+#include "../Operations/Unary/Transposition.h"
 
 void Parser::consumeWhite(std::istream &in) const
 {
@@ -36,28 +38,34 @@ void Parser::match(std::istream &in, char c) const
  */
 double Parser::parseValue(std::istream &in) const
 {
-    double val = 0;
-    while (std::isdigit(in.peek()))
-    {
-        val = val * 10 + (in.get() - '0');
-    }
-    // input value doesn't have decimal part
-    if (in.peek() != DEC_POINT)
-    {
+    /*
+        double val = 0;
+        while (std::isdigit(in.peek()))
+        {
+            val = val * 10 + (in.get() - '0');
+        }
+        // input value doesn't have decimal part
+        if (in.peek() != DEC_POINT)
+        {
+            consumeWhite(in);
+            return val;
+        }
+        // input value has decimal part
+        in.get();
+        double dec = 0;
+        double exp = 1;
+        while (std::isdigit(in.peek()))
+        {
+            dec = dec * 10 + (in.get() - '0');
+            exp /= 10;
+        }
+        dec *= exp;
+        val += dec;
         consumeWhite(in);
         return val;
-    }
-    // input value has decimal part
-    in.get();
-    double dec = 0;
-    int exp = 1;
-    while (std::isdigit(in.peek()))
-    {
-        dec = dec * 10 + (in.get() - '0');
-        exp /= 10;
-    }
-    dec *= exp;
-    val += dec;
+    */
+    double val;
+    in >> val;
     consumeWhite(in);
     return val;
 }
@@ -125,18 +133,18 @@ std::string Parser::parseOperator(std::istream &in) const
     return res;
 }
 
-std::unique_ptr<Matrix> Parser::parseExpression(std::istream &in, int prio) const
+std::unique_ptr<Operation> Parser::parseExpression(std::istream &in, int prio) const
 {
     auto lhs = parseFactor(in);
     return parseExprRec(in, std::move(lhs), prio);
 }
 
-std::unique_ptr<Matrix> Parser::parseFactor(std::istream &in) const
+std::unique_ptr<Operation> Parser::parseFactor(std::istream &in) const
 {
     consumeWhite(in);
     if (in.peek() == L_MAT_PAR)
     {
-        return parseMatrix(in);
+        return std::make_unique<Transposition>(std::make_unique<Identity>(*parseMatrix(in)));
     }
     else
     {
@@ -144,17 +152,17 @@ std::unique_ptr<Matrix> Parser::parseFactor(std::istream &in) const
     }
 }
 
-std::unique_ptr<Matrix> Parser::parseExprRec(std::istream &in, std::unique_ptr<Matrix> lhs, int prio) const
+std::unique_ptr<Operation> Parser::parseExprRec(std::istream &in, std::unique_ptr<Operation> lhs, int prio) const
 {
     return lhs;
 }
 
-std::unique_ptr<Matrix> Parser::parseInput(std::istream &in) const
+std::unique_ptr<Operation> Parser::parseInput(std::istream &in) const
 {
     return parseExpression(in, 0);
 }
 
-std::unique_ptr<Matrix> Parser::parseInput(std::string &input) const
+std::unique_ptr<Operation> Parser::parseInput(std::string &input) const
 {
     std::stringstream ss(input);
     return parseExpression(ss, 0);
