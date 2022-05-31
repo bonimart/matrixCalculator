@@ -14,6 +14,9 @@ private:
     std::unordered_map<std::string, std::shared_ptr<Matrix>> variables;
     std::unordered_map<std::string, std::unique_ptr<Operation>> operations;
 
+    class AddVariable;
+    class ExportVariable;
+
 public:
     void addMatrix(const Matrix &m);
     void importMatrix(std::ifstream &ifs);

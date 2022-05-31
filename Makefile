@@ -2,14 +2,16 @@ TARGET=benesm44
 
 CXX=g++
 LD=g++
-CXXFLAGS=-Wall -pedantic -Wextra -std=c++17
+CXXFLAGS=-Wall -pedantic -Wextra -std=c++17 -g
 MKDIR=mkdir -p
 
 SOURCE_DIR=src
 BUILD_DIR=build
 DOC_DIR=doc
 
+#https://stackoverflow.com/questions/2483182/recursive-wildcards-in-gnu-make
 rwildcard=$(foreach d,$(wildcard $(1:=/*)),$(call rwildcard,$d,$2) $(filter $(subst *,%,$2),$d))
+
 SOURCE=$(call rwildcard, $(SOURCE_DIR), *.cpp)
 HEADER=$(call rwildcard, $(SOURCE_DIR), *.h)
 OBJECT=$(patsubst $(SOURCE_DIR)/%.cpp, $(BUILD_DIR)/%.o, $(SOURCE))
@@ -33,7 +35,7 @@ $(BUILD_DIR)/%.o: $(SOURCE_DIR)/%.cpp
 
 .PHONY: clean
 clean:
-	rm -rf $(BUILD_DIR)/ $(TARGET) $(DOC_DIR)/
+	rm -rf $(BUILD_DIR)/ $(TARGET) $(DOC_DIR)/ $(TARGET).zip
 
 .PHONY: doc
 doc: Doxyfile README.md $(HEADER)

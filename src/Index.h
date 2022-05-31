@@ -4,9 +4,9 @@ class Index
 {
 private:
 public:
-    Index(const int x_coord, const int y_coord)
+    Index(const size_t x_coord, const size_t y_coord)
         : x(x_coord), y(y_coord) {}
 
-    int x;
-    int y;
+    size_t x;
+    size_t y;
 };

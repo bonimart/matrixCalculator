@@ -1,5 +1,6 @@
 #include "MatrixSparse.h"
 
+/*
 double MatrixSparse::get(const Index &coords) const
 {
     if (!validIndex(coords))
@@ -21,3 +22,4 @@ void MatrixSparse::set(const Index &coords, const double &val)
     }
     m_data[coords.x][coords.y] = val;
 }
+*/

@@ -1,5 +1,6 @@
 //#pragma once
 #include <vector>
+#include <sstream>
 #include "../Parser/Parser.h"
 #include "../Matrix/Matrix.h"
 #include "../settings.h"
@@ -27,6 +28,12 @@ void Parser::match(std::istream &in, char c) const
     consumeWhite(in);
 }
 
+/**
+ * @brief parses floating point number from given stream
+ *
+ * @param in stream to parse from
+ * @return double parsed value
+ */
 double Parser::parseValue(std::istream &in) const
 {
     double val = 0;
@@ -55,7 +62,7 @@ double Parser::parseValue(std::istream &in) const
     return val;
 }
 
-std::vector<std::vector<double>> Parser::parseMatrix(std::istream &in) const
+std::unique_ptr<Matrix> Parser::parseMatrix(std::istream &in) const
 {
     match(in, L_MAT_PAR);
     std::vector<std::vector<double>> matrix;
@@ -89,7 +96,7 @@ std::vector<std::vector<double>> Parser::parseMatrix(std::istream &in) const
     }
     match(in, R_MAT_PAR);
 
-    return matrix;
+    return std::make_unique<Matrix>(matrix);
 }
 
 std::string Parser::parseIdentifier(std::istream &in) const
@@ -116,4 +123,39 @@ std::string Parser::parseOperator(std::istream &in) const
     }
     res = std::string(1, c);
     return res;
+}
+
+std::unique_ptr<Matrix> Parser::parseExpression(std::istream &in, int prio) const
+{
+    auto lhs = parseFactor(in);
+    return parseExprRec(in, std::move(lhs), prio);
+}
+
+std::unique_ptr<Matrix> Parser::parseFactor(std::istream &in) const
+{
+    consumeWhite(in);
+    if (in.peek() == L_MAT_PAR)
+    {
+        return parseMatrix(in);
+    }
+    else
+    {
+        throw std::runtime_error("parseFactor: Expected '" + std::string(1, L_MAT_PAR) + "'");
+    }
+}
+
+std::unique_ptr<Matrix> Parser::parseExprRec(std::istream &in, std::unique_ptr<Matrix> lhs, int prio) const
+{
+    return lhs;
+}
+
+std::unique_ptr<Matrix> Parser::parseInput(std::istream &in) const
+{
+    return parseExpression(in, 0);
+}
+
+std::unique_ptr<Matrix> Parser::parseInput(std::string &input) const
+{
+    std::stringstream ss(input);
+    return parseExpression(ss, 0);
 }
