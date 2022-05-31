@@ -5,5 +5,5 @@
 
 class Addition : public Binary
 {
-    virtual std::unique_ptr<Matrix> evaluate() override;
+    virtual std::unique_ptr<Matrix> evaluate(Parameters p) override;
 };

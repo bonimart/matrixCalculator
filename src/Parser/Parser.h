@@ -4,16 +4,18 @@
 #include <set>
 #include <list>
 #include <memory>
-#include <unordered_map>
+#include <map>
 #include <vector>
 #include "../Operations/Operation.h"
+#include "../Operations/Identity.h"
+#include "../Operations/Unary/Transposition.h"
 #include "../Matrix/Matrix.h"
 
 class Parser
 {
 private:
     // std::istream &in = std::cin;
-    std::unordered_map<std::string, std::unique_ptr<Operation>> operations;
+    const static std::map<std::string, std::shared_ptr<Operation>> operations;
 
     void consumeWhite(std::istream &in) const;
     void putback(std::istream &is, const std::string &str) const;
@@ -24,13 +26,13 @@ private:
 
     double parseValue(std::istream &in) const;
     std::unique_ptr<Matrix> parseMatrix(std::istream &in) const;
-    std::unique_ptr<Operation> parseFactor(std::istream &in) const;
+    std::unique_ptr<Matrix> parseFactor(std::istream &in) const;
 
-    std::unique_ptr<Operation> parseExprRec(std::istream &in, std::unique_ptr<Operation> lhs, int prio) const;
-    std::unique_ptr<Operation> parseExpression(std::istream &in, int prio) const;
+    std::unique_ptr<Matrix> parseExprRec(std::istream &in, std::unique_ptr<Matrix> lhs, int prio) const;
+    std::unique_ptr<Matrix> parseExpression(std::istream &in, int prio) const;
 
 public:
     // Parser(std::unordered_map<std::string, std::unique_ptr<Operation>> op) : operations(op){}
-    std::unique_ptr<Operation> parseInput(std::istream &in) const;
-    std::unique_ptr<Operation> parseInput(std::string &input) const;
+    std::unique_ptr<Matrix> parseInput(std::istream &in) const;
+    std::unique_ptr<Matrix> parseInput(std::string &input) const;
 };

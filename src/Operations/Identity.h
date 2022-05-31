@@ -4,16 +4,10 @@
 
 class Identity : public Operation
 {
-protected:
-    Matrix m_matrix;
-
 public:
-    Identity(const Matrix &m)
-        : m_matrix(m) {}
-    virtual ~Identity() {}
-    virtual std::unique_ptr<Matrix> evaluate() override
+    virtual std::unique_ptr<Matrix> evaluate(Parameters p) override
     {
-        return std::make_unique<Matrix>(m_matrix);
+        return std::move(p.param1);
     }
     virtual int numOfOperands() override
     {

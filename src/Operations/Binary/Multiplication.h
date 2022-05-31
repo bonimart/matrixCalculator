@@ -5,5 +5,5 @@
 
 class Multiplication : public Binary
 {
-    virtual std::unique_ptr<Matrix> evaluate() override;
+    // virtual std::unique_ptr<Matrix> evaluate() override;
 };

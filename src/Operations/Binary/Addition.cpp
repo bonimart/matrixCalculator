@@ -1,6 +1,6 @@
 #include "Addition.h"
 
-std::unique_ptr<Matrix> Addition::evaluate()
+std::unique_ptr<Matrix> Addition::evaluate(Parameters p)
 {
     /*
     if (m_left->m_shape.x != m_right->m_shape.x || m_left->m_shape.y != m_right->m_shape.y)
@@ -8,8 +8,8 @@ std::unique_ptr<Matrix> Addition::evaluate()
         //! rozdilne rozmery, nejde scitat
     }
     */
-    std::unique_ptr<Matrix> m1 = std::move(m_left->evaluate());
-    std::unique_ptr<Matrix> m2 = std::move(m_right->evaluate());
+    std::unique_ptr<Matrix> m1 = std::move(p.param1);
+    std::unique_ptr<Matrix> m2 = std::move(p.param2);
     std::unique_ptr<Matrix> res = std::make_unique<Matrix>(m1->m_shape_y, m1->m_shape_x, 0);
     for (std::size_t i = 0; i < m1->m_shape_y; ++i)
     {
