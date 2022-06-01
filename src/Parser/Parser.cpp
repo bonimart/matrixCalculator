@@ -10,7 +10,11 @@
 
 const std::map<std::string, std::shared_ptr<Operation>> Parser::operations = {
     {"tr", std::make_shared<Transposition>()},
-    {"add", std::make_shared<Addition>()}};
+    {"+", std::make_shared<Addition>()}};
+
+const std::map<std::string, int> Parser::operators = {
+    {"+", 0}};
+
 void Parser::consumeWhite(std::istream &in) const
 {
     while (std::isspace(in.peek()))
@@ -133,7 +137,9 @@ std::string Parser::parseOperator(std::istream &in) const
     {
         throw std::runtime_error("Unexpected token " + std::string(1, c));
     }
+    in.get();
     res = std::string(1, c);
+    consumeWhite(in);
     return res;
 }
 
@@ -184,13 +190,42 @@ std::unique_ptr<Matrix> Parser::parseFactor(std::istream &in) const
     }
     else
     {
-        throw std::runtime_error("parseFactor: Expected '" + std::string(1, L_MAT_PAR) + "'");
+        throw std::runtime_error("parseFactor: Expected '" + std::string(1, L_MAT_PAR) + "', got '" + std::string(1, in.peek()) + "'");
     }
     return nullptr;
 }
 
 std::unique_ptr<Matrix> Parser::parseExprRec(std::istream &in, std::unique_ptr<Matrix> lhs, int prio) const
 {
+    while (1)
+    {
+        if (in.peek() == R_FUNC_PAR || in.peek() == EOF || in.peek() == DELIM)
+        {
+            return lhs;
+        }
+
+        auto op = parseOperator(in);
+        if (operators.at(op) < prio)
+        {
+            putback(in, op);
+            return lhs;
+        }
+
+        auto rhs = parseFactor(in);
+        if (in.peek() == R_FUNC_PAR || in.peek() == EOF || in.peek() == DELIM)
+        {
+            return operations.at(op)->evaluate({std::move(lhs), std::move(rhs)});
+        }
+
+        auto op2 = parseOperator(in);
+        putback(in, op2);
+        if (operators.at(op) < operators.at(op2))
+        {
+            rhs = parseExprRec(in, std::move(rhs), operators.at(op) + 1);
+        }
+
+        lhs = operations.at(op)->evaluate({std::move(lhs), std::move(rhs)});
+    }
     return lhs;
 }
 

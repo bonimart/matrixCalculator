@@ -16,6 +16,7 @@ class Parser
 private:
     // std::istream &in = std::cin;
     const static std::map<std::string, std::shared_ptr<Operation>> operations;
+    const static std::map<std::string, int> operators;
 
     void consumeWhite(std::istream &in) const;
     void putback(std::istream &is, const std::string &str) const;
