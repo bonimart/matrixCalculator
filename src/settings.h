@@ -1,4 +1,5 @@
-#define SPARSE_THRESHOLD 1 / 2
+#define SPARSE_THRESHOLD 0.5
+#define EPSILON 10
 #define DELIM ','
 #define END_COMMAND '\n'
 #define DEC_POINT '.'

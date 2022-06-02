@@ -1,21 +1,16 @@
 #include "Subtraction.h"
-#include "../../Matrix/MatrixDense.h"
 
-/*
-std::unique_ptr<Matrix> Subtraction::evaluate()
+std::unique_ptr<Matrix> Subtraction::evaluate(Parameters p) const
 {
-    if (m_left->m_shape.x != m_right->m_shape.x || m_left->m_shape.y != m_right->m_shape.y)
+    std::unique_ptr<Matrix> m1 = std::move(p.param1);
+    std::unique_ptr<Matrix> m2 = std::move(p.param2);
+    std::unique_ptr<Matrix> res = std::make_unique<Matrix>(m1->m_shape_y, m1->m_shape_x, 0);
+    for (std::size_t i = 0; i < m1->m_shape_y; ++i)
     {
-        //! rozdilne rozmery, nejde scitat
-    }
-    std::unique_ptr<Matrix> m = std::make_unique<MatrixDense>(Index{m_left->m_shape.x, m_left->m_shape.y}, 0);
-    for (int i = 0; i < m_left->m_shape.x; i++)
-    {
-        for (int j = 0; j < m_left->m_shape.y; j++)
+        for (std::size_t j = 0; j < m1->m_shape_x; ++j)
         {
-            m->set({i, j}, m_left->get({i, j}) - m_right->get({i, j}));
+            res->set(i, j, m1->at(i, j) - m2->at(i, j));
         }
     }
-    return m;
+    return res;
 }
-*/

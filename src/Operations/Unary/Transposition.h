@@ -11,5 +11,5 @@ public:
     */
     Transposition() {}
     //  virtual std::unique_ptr<Matrix> evaluate() override;
-    virtual std::unique_ptr<Matrix> evaluate(Parameters p) override;
+    virtual std::unique_ptr<Matrix> evaluate(Parameters p) const override;
 };

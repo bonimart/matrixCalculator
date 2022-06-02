@@ -1,6 +1,6 @@
 #include "Addition.h"
 
-std::unique_ptr<Matrix> Addition::evaluate(Parameters p)
+std::unique_ptr<Matrix> Addition::evaluate(Parameters p) const
 {
     /*
     if (m_left->m_shape.x != m_right->m_shape.x || m_left->m_shape.y != m_right->m_shape.y)

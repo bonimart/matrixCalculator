@@ -1,13 +1,11 @@
 #include "Multiplication.h"
 
-std::unique_ptr<Matrix> Multiplication::evaluate(Parameters p)
+std::unique_ptr<Matrix> Multiplication::evaluate(Parameters p) const
 {
-    /*
-    if (m_left->m_shape.y != m_right->m_shape.x)
+    if (!validate(p))
     {
-        //! rozdilne rozmery, nejde scitat
+        throw std::runtime_error("Evaluate: invalid parameters given");
     }
-    */
     std::unique_ptr<Matrix> m1 = std::move(p.param1);
     std::unique_ptr<Matrix> m2 = std::move(p.param2);
     std::unique_ptr<Matrix> res = std::make_unique<Matrix>(m1->m_shape_y, m2->m_shape_x, 0);

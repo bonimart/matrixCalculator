@@ -4,7 +4,7 @@
 #include "../Parser/Parser.h"
 #include "../Matrix/Matrix.h"
 #include "../settings.h"
-#include "../Operations/Identity.h"
+#include "../Operations/Unary/Identity.h"
 #include "../Operations/Binary/Addition.h"
 #include "../Operations/Unary/Transposition.h"
 #include "../Operations/Binary/Multiplication.h"
@@ -87,7 +87,7 @@ std::unique_ptr<Matrix> Parser::parseMatrix(std::istream &in) const
         match(in, L_MAT_PAR);
         if (shape_x == 0)
         {
-            for (; std::isdigit(in.peek()); shape_x++)
+            for (; std::isdigit(in.peek()) || in.peek() == '-'; shape_x++)
             {
                 row.push_back(parseValue(in));
                 if (in.peek() != R_MAT_PAR)

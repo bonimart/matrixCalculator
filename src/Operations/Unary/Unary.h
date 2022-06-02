@@ -5,13 +5,9 @@
 
 class Unary : public Operation
 {
-protected:
-    /*
-        std::unique_ptr<Operation> m_param;
-        Unary(std::unique_ptr<Operation> op)
-            : m_param(std::move(op)) {}
-    */
-    virtual int numOfOperands() override
+public:
+    virtual bool validate(const Parameters &p) const override { return true; }
+    virtual int numOfOperands() const override
     {
         return 1;
     }
