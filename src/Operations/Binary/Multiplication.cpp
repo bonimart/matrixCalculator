@@ -1,26 +1,27 @@
 #include "Multiplication.h"
-#include "../../Matrix/MatrixDense.h"
 
-/**
-std::unique_ptr<Matrix> Multiplication::evaluate()
+std::unique_ptr<Matrix> Multiplication::evaluate(Parameters p)
 {
+    /*
     if (m_left->m_shape.y != m_right->m_shape.x)
     {
         //! rozdilne rozmery, nejde scitat
     }
-    std::unique_ptr<Matrix> m = std::make_unique<MatrixDense>(Index{m_left->m_shape.x, m_right->m_shape.y}, 0);
-    for (int i = 0; i < m_left->m_shape.x; i++)
+    */
+    std::unique_ptr<Matrix> m1 = std::move(p.param1);
+    std::unique_ptr<Matrix> m2 = std::move(p.param2);
+    std::unique_ptr<Matrix> res = std::make_unique<Matrix>(m1->m_shape_y, m2->m_shape_x, 0);
+    for (std::size_t i = 0; i < m1->m_shape_y; ++i)
     {
-        for (int j = 0; j < m_right->m_shape.y; j++)
+        for (std::size_t j = 0; j < m2->m_shape_x; ++j)
         {
             double sum = 0;
-            for (int k = 0; k < m_left->m_shape.y; k++)
+            for (std::size_t k = 0; k < m1->m_shape_x; ++k)
             {
-                sum += m_left->get({i, k}) * m_right->get({k, j});
+                sum += m1->at(i, k) * m2->at(k, j);
             }
-            m->set({i, j}, sum);
+            res->set(i, j, sum);
         }
     }
-    return m;
+    return res;
 }
-**/

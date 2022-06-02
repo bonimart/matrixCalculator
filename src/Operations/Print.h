@@ -10,5 +10,5 @@ protected:
     std::unique_ptr<Matrix> param;
 
 public:
-    virtual std::unique_ptr<Matrix> evaluate() override;
+    //virtual std::unique_ptr<Matrix> evaluate() override;
 };

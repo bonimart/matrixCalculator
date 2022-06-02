@@ -3,13 +3,19 @@
 #include "Matrix/Matrix.h"
 #include "Operations/Operation.h"
 #include "Parser/Parser.h"
+#include "Calculator.h"
+#include "Operations/Binary/Multiplication.h"
+#include "Operations/Binary/Addition.h"
+#include "Operations/Unary/Transposition.h"
 
 int main()
 {
-    Parser p;
-    std::vector<std::vector<double>> v;
-    auto m = p.parseInput(std::cin);
-    m->print(std::cout);
+    Calculator c;
+
+    while (!(c.execute(std::cin).eof()))
+    {
+    }
+
     std::cout << std::endl;
-    std::cout << "Member at position [0, 0]: " << m->at(0, 0) << std::endl;
+    c.print(std::cout);
 }
