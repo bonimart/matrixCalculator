@@ -1,32 +1,23 @@
 #include "Selection.h"
+#include "../../utils.h"
+#include <iostream>
 
-/**
-std::unique_ptr<Matrix> Selection::evaluate()
+std::unique_ptr<Matrix> Selection::evaluate(Parameters p) const
 {
-    int x0 = m_right->get({0, 0});
-    int x1 = m_right->get({1, 0});
-    int y0 = m_right->get({0, 1});
-    int y1 = m_right->get({1, 1});
+    //! zvaliduj jestli jsou celociselny a je spravny rozmer
 
-    int min_x = x0 < x1 ? x0 : x1;
-    int max_x = x0 >= x1 ? x0 : x1;
-    int min_y = y0 < y1 ? y0 : y1;
-    int max_y = y0 >= y1 ? y0 : y1;
+    std::size_t up = std::min(p.param2->at(0, 0), p.param2->at(1, 0));
+    std::size_t bottom = std::max(p.param2->at(0, 0), p.param2->at(1, 0));
+    std::size_t left = std::min(p.param2->at(0, 1), p.param2->at(1, 1));
+    std::size_t right = std::max(p.param2->at(0, 1), p.param2->at(1, 1));
 
-    if (m_left->m_shape.x < max_x || m_left->m_shape.y < max_y || min_x < 0 || min_y < 0)
+    std::unique_ptr<Matrix> m = std::make_unique<Matrix>(bottom - up + 1, right - left + 1);
+    for (std::size_t i = up; i <= bottom; ++i)
     {
-        //! nespravne rozmery pro vyber
-    }
-    std::unique_ptr<Matrix> m = std::make_unique<MatrixDense>(Index{max_x - min_x, max_y - min_y}, 0);
-
-    for (int i = min_x; i < max_x; i++)
-    {
-        for (int j = min_y; j < max_y; j++)
+        for (std::size_t j = left; j <= right; ++j)
         {
-            m->set({i - min_x, j - min_y}, m_left->get({i, j}));
+            m->set(i - up, j - left, p.param1->at(i, j));
         }
     }
-
     return m;
 }
-**/

@@ -1,4 +1,5 @@
 #include "Matrix.h"
+#include "../utils.h"
 
 Matrix::DataSparse::DataSparse(const std::shared_ptr<Data> data, std::size_t shape_y, std::size_t shape_x)
 {

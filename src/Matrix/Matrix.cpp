@@ -1,12 +1,6 @@
 #include "Matrix.h"
 #include "../settings.h"
-#include <limits>
-
-bool Matrix::doubleCmp(const double a, const double b)
-{
-    return a == b ||
-           std::abs(a - b) < std::abs(std::min(a, b)) * std::numeric_limits<double>::epsilon();
-}
+#include "../utils.h"
 
 Matrix::Matrix(const std::vector<std::vector<double>> &data)
     : m_shape_y(data.size()), m_shape_x(data.at(0).size())
@@ -53,6 +47,31 @@ Matrix::Matrix(const std::size_t shape_y, const std::size_t shape_x, const doubl
     {
         m_data = std::make_shared<DataSparse>(data);
     }
+}
+
+Matrix Matrix::operator+(const double val) const
+{
+    Matrix m = Matrix(m_shape_y, m_shape_x, 0);
+    for (std::size_t i = 0; i < m_shape_y; ++i)
+    {
+        for (std::size_t j = 0; j < m_shape_x; ++j)
+        {
+            m.set(i, j, this->at(i, j) + val);
+        }
+    }
+    return m;
+}
+Matrix Matrix::operator*(const double val) const
+{
+    Matrix m = Matrix(m_shape_y, m_shape_x, 0);
+    for (std::size_t i = 0; i < m_shape_y; ++i)
+    {
+        for (std::size_t j = 0; j < m_shape_x; ++j)
+        {
+            m.set(i, j, this->at(i, j) * val);
+        }
+    }
+    return m;
 }
 
 double Matrix::at(std::size_t i, std::size_t j) const
