@@ -1,5 +1,4 @@
 #include "Selection.h"
-#include "../../Matrix/MatrixDense.h"
 
 /**
 std::unique_ptr<Matrix> Selection::evaluate()

@@ -10,6 +10,7 @@
 #include "Operations/Unary/Print.h"
 #include "Operations/Binary/Addition.h"
 #include "Operations/Binary/Multiplication.h"
+#include "Operations/Unary/Determinant.h"
 #include "Parser/Parser.h"
 
 class AddVariable : public Operation
@@ -38,6 +39,7 @@ private:
     std::unordered_map<std::string, std::shared_ptr<Matrix>> variables = {};
     const std::unordered_map<std::string, std::shared_ptr<Operation>> operations = {
         std::make_pair<std::string, std::shared_ptr<Operation>>("tr", std::make_shared<Transposition>()),
+        std::make_pair<std::string, std::shared_ptr<Operation>>("det", std::make_shared<Determinant>()),
         std::make_pair<std::string, std::shared_ptr<Operation>>("print", std::make_shared<Print>(std::cout)),
         std::make_pair<std::string, std::shared_ptr<Operation>>("+", std::make_shared<Addition>()),
         std::make_pair<std::string, std::shared_ptr<Operation>>("*", std::make_shared<Multiplication>()),
