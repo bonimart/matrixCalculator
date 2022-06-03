@@ -1,6 +1,7 @@
 //#pragma once
 #include <vector>
 #include <sstream>
+#include <fstream>
 #include "../Parser/Parser.h"
 #include "../Matrix/Matrix.h"
 #include "../settings.h"
@@ -44,32 +45,6 @@ void Parser::match(std::istream &in, char c) const
  */
 double Parser::parseValue(std::istream &in) const
 {
-    /*
-        double val = 0;
-        while (std::isdigit(in.peek()))
-        {
-            val = val * 10 + (in.get() - '0');
-        }
-        // input value doesn't have decimal part
-        if (in.peek() != DEC_POINT)
-        {
-            consumeWhite(in);
-            return val;
-        }
-        // input value has decimal part
-        in.get();
-        double dec = 0;
-        double exp = 1;
-        while (std::isdigit(in.peek()))
-        {
-            dec = dec * 10 + (in.get() - '0');
-            exp /= 10;
-        }
-        dec *= exp;
-        val += dec;
-        consumeWhite(in);
-        return val;
-    */
     double val;
     in >> val;
     consumeWhite(in);
@@ -127,7 +102,17 @@ std::string Parser::parseIdentifier(std::istream &in) const
     {
         res += in.get();
     }
-
+    if (in.peek() != '.')
+    {
+        consumeWhite(in);
+        return res;
+    }
+    //! for file extensions
+    res += in.get();
+    while (std::isalpha(in.peek()))
+    {
+        res += in.get();
+    }
     consumeWhite(in);
     return res;
 }
@@ -200,7 +185,23 @@ std::unique_ptr<Matrix> Parser::parseFactor(std::istream &in) const
         // unary functions
         if (operations.at(name)->numOfOperands() == 1)
         {
-            auto param = parseExpression(in, 0);
+            Parameters param;
+            //?check for input file
+
+            std::string fname = parseIdentifier(in);
+            std::ifstream ifs(fname);
+
+            if (ifs.is_open())
+            {
+                ifs.close();
+                param.param_str = fname;
+            }
+            else
+            {
+                putback(in, fname);
+                param.param1 = parseExpression(in, 0);
+            }
+            //   param.param1 = parseExpression(in, 0);
             auto res = operations.at(name)->evaluate(std::move(param));
             match(in, R_FUNC_PAR);
             return res;
