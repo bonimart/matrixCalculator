@@ -41,3 +41,8 @@ void Matrix::DataDense::print(std::ostream &out, std::size_t shape_y, std::size_
     }
     out << R_MAT_PAR;
 }
+
+std::shared_ptr<Matrix::Data> Matrix::DataDense::clone() const
+{
+    return std::make_shared<Matrix::DataDense>(m_data);
+}

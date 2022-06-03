@@ -49,6 +49,23 @@ Matrix::Matrix(const std::size_t shape_y, const std::size_t shape_x, const doubl
     }
 }
 
+Matrix::Matrix(const Matrix &other)
+{
+    m_shape_y = other.m_shape_y;
+    m_shape_x = other.m_shape_x;
+    zeroCount = other.zeroCount;
+    m_data = other.m_data->clone();
+}
+
+Matrix &Matrix::operator=(const Matrix &other)
+{
+    m_shape_y = other.m_shape_y;
+    m_shape_x = other.m_shape_x;
+    zeroCount = other.zeroCount;
+    m_data = other.m_data->clone();
+    return *this;
+}
+
 Matrix Matrix::operator+(const double val) const
 {
     Matrix m = Matrix(m_shape_y, m_shape_x, 0);

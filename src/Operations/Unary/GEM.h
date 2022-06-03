@@ -5,5 +5,6 @@
 
 class GEM : public Unary
 {
-    // virtual std::unique_ptr<Matrix> evaluate() override;
+public:
+    virtual std::unique_ptr<Matrix> evaluate(Parameters p) const override;
 };

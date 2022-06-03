@@ -5,7 +5,7 @@
 #include <list>
 #include <memory>
 #include <map>
-#include "unordered_map"
+#include <unordered_map>
 #include <vector>
 #include "../Operations/Operation.h"
 #include "../Operations/Unary/Identity.h"
@@ -17,7 +17,7 @@ class Parser
 private:
     const std::unordered_map<std::string, std::shared_ptr<Operation>> operations;
     const std::unordered_map<std::string, int> operators;
-    std::unordered_map<std::string, std::shared_ptr<Matrix>> &variables;
+    std::map<std::string, std::shared_ptr<Matrix>> &variables;
 
     void consumeWhite(std::istream &in) const;
     void putback(std::istream &is, const std::string &str) const;
@@ -36,7 +36,7 @@ private:
 public:
     Parser(const std::unordered_map<std::string, std::shared_ptr<Operation>> &op,
            const std::unordered_map<std::string, int> &opPrio,
-           std::unordered_map<std::string, std::shared_ptr<Matrix>> &var)
+           std::map<std::string, std::shared_ptr<Matrix>> &var)
         : operations(op), operators(opPrio), variables(var) {}
     std::unique_ptr<Matrix> parseInput(std::istream &in) const;
     std::unique_ptr<Matrix> parseInput(std::string &input) const;

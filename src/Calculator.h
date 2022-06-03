@@ -2,25 +2,29 @@
 #include <fstream>
 #include <string>
 #include <unordered_map>
+#include <map>
 #include <memory>
 #include <list>
 #include <set>
 #include "Matrix/Matrix.h"
 #include "Operations/Operation.h"
 #include "Operations/Unary/Print.h"
+#include "Operations/Unary/GEM.h"
 #include "Operations/Binary/Addition.h"
+#include "Operations/Binary/Subtraction.h"
 #include "Operations/Binary/Multiplication.h"
 #include "Operations/Binary/Selection.h"
+#include "Operations/Binary/Union.h"
 #include "Operations/Unary/Determinant.h"
 #include "Parser/Parser.h"
 
 class AddVariable : public Operation
 {
 protected:
-    std::unordered_map<std::string, std::shared_ptr<Matrix>> &variables;
+    std::map<std::string, std::shared_ptr<Matrix>> &variables;
 
 public:
-    AddVariable(std::unordered_map<std::string, std::shared_ptr<Matrix>> &var)
+    AddVariable(std::map<std::string, std::shared_ptr<Matrix>> &var)
         : variables(var) {}
     virtual std::unique_ptr<Matrix> evaluate(Parameters p) const override
     {
@@ -37,18 +41,22 @@ public:
 class Calculator
 {
 private:
-    std::unordered_map<std::string, std::shared_ptr<Matrix>> variables = {};
+    std::map<std::string, std::shared_ptr<Matrix>, std::less<std::string>> variables = {};
     const std::unordered_map<std::string, std::shared_ptr<Operation>> operations = {
         std::make_pair<std::string, std::shared_ptr<Operation>>("tr", std::make_shared<Transposition>()),
         std::make_pair<std::string, std::shared_ptr<Operation>>("det", std::make_shared<Determinant>()),
         std::make_pair<std::string, std::shared_ptr<Operation>>("print", std::make_shared<Print>(std::cout)),
+        std::make_pair<std::string, std::shared_ptr<Operation>>("gem", std::make_shared<GEM>()),
         std::make_pair<std::string, std::shared_ptr<Operation>>("sel", std::make_shared<Selection>()),
+        std::make_pair<std::string, std::shared_ptr<Operation>>("join", std::make_shared<Union>()),
         std::make_pair<std::string, std::shared_ptr<Operation>>("+", std::make_shared<Addition>()),
+        std::make_pair<std::string, std::shared_ptr<Operation>>("-", std::make_shared<Subtraction>()),
         std::make_pair<std::string, std::shared_ptr<Operation>>("*", std::make_shared<Multiplication>()),
         std::make_pair<std::string, std::shared_ptr<Operation>>("=", std::make_shared<AddVariable>(variables))};
     const std::unordered_map<std::string, int> operators = {
         {"=", 0},
         {"+", 1},
+        {"-", 1},
         {"*", 2}};
     Parser parser;
 

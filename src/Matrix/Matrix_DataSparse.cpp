@@ -35,35 +35,62 @@ double Matrix::DataSparse::at(std::size_t i, std::size_t j) const
 void Matrix::DataSparse::set(std::size_t i, std::size_t j, double val)
 {
     if (doubleCmp(val, 0))
+    {
+        if (m_data.count(i) != 0 && m_data.at(i).count(j) != 0)
+        {
+            m_data.at(i).erase(j);
+            if (m_data.at(i).empty())
+                m_data.erase(i);
+        }
         return;
+    }
     m_data[i][j] = val;
 }
 
 void Matrix::DataSparse::print(std::ostream &out, std::size_t shape_y, std::size_t shape_x) const
 {
+    /*
     out << L_MAT_PAR;
     bool firstPrint = true;
     for (std::size_t i = 0; i < shape_y; ++i)
     {
-        /*
         if (i != 0)
             out << "," << std::endl
                 << " ";
 
         out << L_MAT_PAR;
-        */
+    for (std::size_t j = 0; j < shape_x; ++j)
+    {
+        if (m_data.count(i) != 0 && m_data.at(i).count(j) != 0)
+        {
+            if (!firstPrint)
+                out << ", ";
+            else
+                firstPrint = false;
+            out << "{" << i << "," << j << "}:" << this->at(i, j);
+        }
+    }
+
+    */
+    out << L_MAT_PAR;
+    for (std::size_t i = 0; i < shape_y; ++i)
+    {
+        if (i != 0)
+            out << "," << std::endl
+                << " ";
+        out << L_MAT_PAR;
         for (std::size_t j = 0; j < shape_x; ++j)
         {
-            if (m_data.count(i) != 0 && m_data.at(i).count(j) != 0)
-            {
-                if (!firstPrint)
-                    out << ", ";
-                else
-                    firstPrint = false;
-                out << "{" << i << "," << j << "}:" << this->at(i, j);
-            }
+            if (j != 0)
+                out << ", ";
+            out << this->at(i, j);
         }
-        // out << R_MAT_PAR;
+        out << R_MAT_PAR;
     }
     out << R_MAT_PAR;
+}
+
+std::shared_ptr<Matrix::Data> Matrix::DataSparse::clone() const
+{
+    return std::make_shared<Matrix::DataSparse>(m_data);
 }

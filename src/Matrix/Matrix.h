@@ -17,6 +17,7 @@ private:
         virtual double at(std::size_t i, std::size_t j) const = 0;
         virtual void set(std::size_t i, std::size_t j, const double val) = 0;
         virtual void print(std::ostream &out, std::size_t shape_y, std::size_t shape_x) const = 0;
+        virtual std::shared_ptr<Data> clone() const = 0;
     };
     class DataDense : public Data
     {
@@ -30,6 +31,7 @@ private:
         virtual double at(std::size_t i, std::size_t j) const override;
         virtual void set(std::size_t i, std::size_t j, const double val) override;
         virtual void print(std::ostream &out, std::size_t shape_y, std::size_t shape_x) const override;
+        virtual std::shared_ptr<Data> clone() const override;
     };
     class DataSparse : public Data
     {
@@ -44,6 +46,7 @@ private:
         virtual double at(std::size_t i, std::size_t j) const override;
         virtual void set(std::size_t i, std::size_t j, const double val) override;
         virtual void print(std::ostream &out, std::size_t shape_y, std::size_t shape_x) const override;
+        virtual std::shared_ptr<Data> clone() const override;
     };
 
     int lastZeroCount = -1;
@@ -54,11 +57,9 @@ private:
 public:
     std::size_t m_shape_y = 0;
     std::size_t m_shape_x = 0;
+
     Matrix(const std::vector<std::vector<double>> &data);
-    /*
-    Matrix(const Matrix &other)
-        : m_data(std::make_shared<Data>(*other.m_data)), m_shape_y(other.m_shape_y), m_shape_x(other.m_shape_x) {}
-    */
+    Matrix(const Matrix &other);
     Matrix(const std::size_t shape_y, const std::size_t shape_x, const double fill = 0);
     ~Matrix() = default;
 
