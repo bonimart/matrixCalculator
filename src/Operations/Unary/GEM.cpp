@@ -40,9 +40,10 @@ std::unique_ptr<Matrix> GEM::evaluate(Parameters p) const
             if (doubleCmp(m->at(i, j), 0))
                 continue;
             //? normalize first non-zero value to 1, update rest of the row accordingly
+            double coef = m->at(i, j);
             for (std::size_t col = 0; col < m->m_shape_x; ++col)
             {
-                m->set(i, col, m->at(i, col) / m->at(i, j));
+                m->set(i, col, m->at(i, col) / coef);
             }
             for (int row = i - 1; row >= 0; --row)
             {
