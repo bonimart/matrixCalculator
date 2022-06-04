@@ -17,7 +17,7 @@ HEADER=$(call rwildcard, $(SOURCE_DIR), *.h)
 OBJECT=$(patsubst $(SOURCE_DIR)/%.cpp, $(BUILD_DIR)/%.o, $(SOURCE))
 
 .PHONY: all
-all: compile doc
+all: deps compile doc
 
 .PHONY: run
 run: $(TARGET)
@@ -33,6 +33,9 @@ $(BUILD_DIR)/%.o: $(SOURCE_DIR)/%.cpp
 	$(MKDIR) $(dir $(OBJECT))
 	$(CXX) $(CXXFLAGS) $< -c -o $@
 
+deps: 
+	$(CXX) -MM $(SOURCE) > Makefile.d
+
 .PHONY: clean
 clean:
 	rm -rf $(BUILD_DIR)/ $(TARGET) $(DOC_DIR)/ $(TARGET).zip
@@ -46,4 +49,5 @@ $(TARGET).zip: README.md zadani.txt prohlaseni.txt Makefile Doxyfile $(HEADER) $
 	cp -r README.md zadani.txt prohlaseni.txt Makefile Doxyfile $(SOURCE_DIR) .archive/$(TARGET)/
 	cd .archive/; zip -r ../$(TARGET).zip $(TARGET)/
 	rm -r .archive/
-	
+
+-include Makefile.d

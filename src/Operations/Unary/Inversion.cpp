@@ -6,9 +6,22 @@
 #include "../../utils.h"
 #include <iostream>
 
+void Inversion::validate(const Parameters &p) const
+{
+    Rank r;
+    if ((p.param1->m_shape_x != p.param1->m_shape_y) ||
+        (r.evaluate(std::make_unique<Matrix>(*p.param1))->at(0, 0) != p.param1->m_shape_x))
+    {
+        throw std::runtime_error("Inversion is undefined for singular matrices.");
+    }
+}
+
 std::unique_ptr<Matrix> Inversion::evaluate(Parameters p) const
 {
     //! musi byt ctvercova a rank n
+
+    validate(p);
+
     GEM g;
     Union u;
     Selection s;

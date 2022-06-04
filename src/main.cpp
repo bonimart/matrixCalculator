@@ -1,5 +1,6 @@
 #include "Index.h"
 #include <vector>
+#include "settings.h"
 #include "Matrix/Matrix.h"
 #include "Operations/Operation.h"
 #include "Parser/Parser.h"
@@ -12,10 +13,21 @@ int main()
 {
     Calculator c;
 
-    while (!(c.execute(std::cin).eof()))
+    do
     {
-    }
+        try
+        {
+            c.execute(std::cin).eof();
+        }
+        catch (const std::exception &e)
+        {
+            std::cerr << e.what() << '\n';
+            while (std::cin.get() != END_COMMAND)
+                ;
+        }
+    } while (!(std::cin.eof()));
 
-    std::cout << std::endl;
+    std::cout
+        << std::endl;
     c.print(std::cout);
 }

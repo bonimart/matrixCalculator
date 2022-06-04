@@ -1,11 +1,16 @@
 #include "Multiplication.h"
 
+void Multiplication::validate(const Parameters &p) const
+{
+    if (p.param1->m_shape_y != p.param2->m_shape_x)
+    {
+        throw std::runtime_error("Matrix multiplication is defined for matrices with following shapes [l,m]*[m,n]");
+    }
+}
+
 std::unique_ptr<Matrix> Multiplication::evaluate(Parameters p) const
 {
-    if (!validate(p))
-    {
-        throw std::runtime_error("Evaluate: invalid parameters given");
-    }
+    validate(p);
     std::unique_ptr<Matrix> m1 = std::move(p.param1);
     std::unique_ptr<Matrix> m2 = std::move(p.param2);
     std::unique_ptr<Matrix> res = std::make_unique<Matrix>(m1->m_shape_y, m2->m_shape_x, 0);

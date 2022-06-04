@@ -24,6 +24,7 @@ private:
     void match(std::istream &in, char c) const;
 
     std::string parseIdentifier(std::istream &in) const;
+    std::string parseFileName(std::istream &in) const;
     std::string parseOperator(std::istream &in) const;
 
     double parseValue(std::istream &in) const;

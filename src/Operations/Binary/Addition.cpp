@@ -1,13 +1,17 @@
 #include "Addition.h"
 
+void Addition::validate(const Parameters &p) const
+{
+    if (p.param1->m_shape_x != p.param2->m_shape_x ||
+        p.param1->m_shape_y != p.param2->m_shape_y)
+    {
+        throw std::runtime_error("Matrix addition is defined for matries of the same shape only.");
+    }
+}
+
 std::unique_ptr<Matrix> Addition::evaluate(Parameters p) const
 {
-    /*
-    if (m_left->m_shape.x != m_right->m_shape.x || m_left->m_shape.y != m_right->m_shape.y)
-    {
-        //! rozdilne rozmery, nejde scitat
-    }
-    */
+    validate(p);
     std::unique_ptr<Matrix> m1 = std::move(p.param1);
     std::unique_ptr<Matrix> m2 = std::move(p.param2);
     std::unique_ptr<Matrix> res = std::make_unique<Matrix>(m1->m_shape_y, m1->m_shape_x, 0);

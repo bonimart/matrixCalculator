@@ -6,7 +6,7 @@
 class Unary : public Operation
 {
 public:
-    virtual bool validate(const Parameters &p) const override { return true; }
+    virtual void validate(const Parameters &p) const override {}
     virtual int numOfOperands() const override
     {
         return 1;

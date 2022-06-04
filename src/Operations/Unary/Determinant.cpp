@@ -1,8 +1,16 @@
 #include "Determinant.h"
 
+void Determinant::validate(const Parameters &p) const
+{
+    if (p.param1->m_shape_x != p.param2->m_shape_y)
+    {
+        throw std::runtime_error("Determinant is defined for square matrices only");
+    }
+}
+
 std::unique_ptr<Matrix> Determinant::evaluate(Parameters p) const
 {
-    // TODO pridat validate na ctvercovou matici
+    validate(p);
     std::shared_ptr<Matrix> m = std::move(p.param1);
     std::vector<int> perm;
     for (int i = 0; i < m->m_shape_x; ++i)

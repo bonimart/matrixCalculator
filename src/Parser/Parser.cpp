@@ -102,12 +102,26 @@ std::string Parser::parseIdentifier(std::istream &in) const
     {
         res += in.get();
     }
+
+    consumeWhite(in);
+    return res;
+}
+
+std::string Parser::parseFileName(std::istream &in) const
+{
+
+    std::string res;
+
+    while (std::isalpha(in.peek()))
+    {
+        res += in.get();
+    }
     if (in.peek() != '.')
     {
         consumeWhite(in);
         return res;
     }
-    //! for file extensions
+    //? for file extensions
     res += in.get();
     while (std::isalpha(in.peek()))
     {
@@ -157,52 +171,86 @@ std::unique_ptr<Matrix> Parser::parseFactor(std::istream &in) const
         match(in, R_FUNC_PAR);
         return res;
     }
+    else if (in.peek() == VAR_IDENTIFIER)
+    {
+        match(in, VAR_IDENTIFIER);
+        const std::string name = parseIdentifier(in);
+        if (variables.count(name) == 0)
+        {
+            throw std::runtime_error("Invalid variable name '" + name + "'");
+        }
+        return std::make_unique<Matrix>(*variables.at(name));
+    }
+    else if (in.peek() == FILE_IDENTIFIER)
+    {
+        match(in, FILE_IDENTIFIER);
+        const std::string fname = parseFileName(in);
+        std::ifstream ifs(fname);
+        if (!ifs.is_open())
+        {
+            throw std::runtime_error("Invalid file name '" + fname + "'");
+        }
+        auto res = parseExpression(ifs, 0);
+        ifs.close();
+        return res;
+    }
     // function or variable on input
     else if (std::isalpha(in.peek()))
     {
         // check for variable first - function has parantheses
-        const std::string name = parseIdentifier(in);
+        std::string name = parseFileName(in);
         consumeWhite(in);
         // check for functions that are called as '{string} {operator} {matrix}' (=, <)
         if (operators.count(std::string(1, in.peek())) != 0 &&
-            operators.at(std::string(1, in.peek())) == 0)
+            operators.at(std::string(1, in.peek())) == WRITE_PRIORITY)
         {
             const std::string op = parseOperator(in);
-            auto param = parseExpression(in, 0);
-            return operations.at(op)->evaluate({std::move(param), name});
-        }
-        // variable is defined, return its value
-        if (variables.count(name) != 0)
-        {
-            return std::make_unique<Matrix>(*(variables.at(name)));
-        }
-        // check for 'normal' functions {func}(*args)
-        match(in, L_FUNC_PAR);
-        if (operations.count(name) == 0)
-        {
-            throw std::runtime_error("parseFactor: Invalid function or variable name '" + name + "'");
-        }
-        // unary functions
-        if (operations.at(name)->numOfOperands() == 1)
-        {
-            Parameters param;
-            //?check for input file
-
-            std::string fname = parseIdentifier(in);
-            std::ifstream ifs(fname);
-
-            if (ifs.is_open())
+            auto res = parseExpression(in, 0);
+            if (op == WRITE_TO_FILE)
             {
-                ifs.close();
-                param.param_str = fname;
+                std::ofstream ofs(name);
+                if (!ofs.is_open())
+                {
+                    throw std::runtime_error("Could not open output file");
+                }
+                res->print(ofs);
+                ofs.close();
+            }
+            else if (op == SET_VAR)
+            {
+                putback(in, name);
+                name = parseIdentifier(in);
+                variables[name] = std::make_shared<Matrix>(*res);
             }
             else
             {
-                putback(in, fname);
-                param.param1 = parseExpression(in, 0);
+                throw std::runtime_error("Invalid operator '" + op + "'");
             }
-            //   param.param1 = parseExpression(in, 0);
-            auto res = operations.at(name)->evaluate(std::move(param));
+            return res;
+        }
+        putback(in, name);
+        std::string name = parseFileName(in);
+        // check for 'normal' functions {func}(*args)
+        if (operations.count(name) == 0)
+        {
+            throw std::runtime_error("parseFactor: Invalid function name '" + name + "'");
+        }
+        match(in, L_FUNC_PAR);
+        // unary functions
+        if (operations.at(name)->numOfOperands() == 1)
+        {
+            //?check for input file
+            std::string fname = parseIdentifier(in);
+            std::ifstream ifs(fname);
+            if (ifs.is_open())
+            {
+                // res = parseMatrix(ifs);
+                ifs.close();
+            }
+            putback(in, fname);
+
+            auto res = operations.at(name)->evaluate({parseExpression(in, 0)});
+
             match(in, R_FUNC_PAR);
             return res;
         }

@@ -3,14 +3,6 @@
 #include <memory>
 #include <iostream>
 
-/**
- * @brief xdd
- *
- * @param a
- * @param b
- * @return true
- * @return false
- */
 bool doubleCmp(const double a, const double b)
 {
     return a == b ||

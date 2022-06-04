@@ -1,6 +1,16 @@
 #include "Import.h"
 #include <fstream>
 
+void Import::validate(const Parameters &p) const
+{
+    std::ifstream ifs(p.param_str);
+    if (!ifs.is_open())
+    {
+        throw std::runtime_error("Cannot access export file");
+    }
+    ifs.close();
+}
+
 void Import::consumeWhite(std::istream &in) const
 {
     while (std::isspace(in.peek()))

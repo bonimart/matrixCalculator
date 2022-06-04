@@ -2,6 +2,16 @@
 #include "../Unary/Print.h"
 #include <fstream>
 
+void Export::validate(const Parameters &p) const
+{
+    std::ofstream of(p.param_str);
+    if (!of.is_open())
+    {
+        throw std::runtime_error("Cannot access export file");
+    }
+    of.close();
+}
+
 std::unique_ptr<Matrix> Export::evaluate(Parameters p) const
 {
     //! validate urci, jestli existuje soubor
