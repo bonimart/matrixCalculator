@@ -7,6 +7,7 @@ MKDIR=mkdir -p
 
 SOURCE_DIR=src
 BUILD_DIR=build
+EXAMPLE_DIR=examples
 DOC_DIR=doc
 
 #https://stackoverflow.com/questions/2483182/recursive-wildcards-in-gnu-make
@@ -46,7 +47,7 @@ doc: Doxyfile README.md $(HEADER)
 
 $(TARGET).zip: README.md zadani.txt prohlaseni.txt Makefile Doxyfile $(HEADER) $(SOURCE)
 	$(MKDIR) .archive/$(TARGET)/
-	cp -r README.md zadani.txt prohlaseni.txt Makefile Doxyfile $(SOURCE_DIR) .archive/$(TARGET)/
+	cp -r README.md zadani.txt prohlaseni.txt Makefile Doxyfile $(SOURCE_DIR) $(EXAMPLE_DIR) .archive/$(TARGET)/
 	cd .archive/; zip -r ../$(TARGET).zip $(TARGET)/
 	rm -r .archive/
 

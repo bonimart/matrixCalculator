@@ -13,7 +13,7 @@ std::unique_ptr<Matrix> Determinant::evaluate(Parameters p) const
     validate(p);
     std::shared_ptr<Matrix> m = std::move(p.param1);
     std::vector<int> perm;
-    for (int i = 0; i < m->m_shape_x; ++i)
+    for (std::size_t i = 0; i < m->m_shape_x; ++i)
     {
         perm.push_back(i);
     }

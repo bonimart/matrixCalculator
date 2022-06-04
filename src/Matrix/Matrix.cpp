@@ -49,6 +49,15 @@ Matrix::Matrix(const std::size_t shape_y, const std::size_t shape_x, const doubl
     }
 }
 
+Matrix::Matrix(const std::size_t &rows, const std::size_t &columns)
+{
+    *this = Matrix(rows, columns, 0);
+    for (std::size_t i = 0; i < rows; ++i)
+    {
+        set(i, i, 1);
+    }
+}
+
 Matrix::Matrix(const Matrix &other)
 {
     m_shape_y = other.m_shape_y;

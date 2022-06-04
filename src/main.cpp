@@ -1,4 +1,3 @@
-#include "Index.h"
 #include <vector>
 #include "settings.h"
 #include "Matrix/Matrix.h"
@@ -17,12 +16,12 @@ int main()
     {
         try
         {
-            c.execute(std::cin).eof();
+            c.execute(std::cin);
         }
         catch (const std::exception &e)
         {
             std::cerr << e.what() << '\n';
-            while (std::cin.get() != END_COMMAND)
+            while (std::cin.get() != END_COMMAND && std::cin)
                 ;
         }
     } while (!(std::cin.eof()));
@@ -30,4 +29,5 @@ int main()
     std::cout
         << std::endl;
     c.print(std::cout);
+    return EXIT_SUCCESS;
 }

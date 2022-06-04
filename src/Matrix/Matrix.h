@@ -4,10 +4,8 @@
 #include <unordered_map>
 #include <memory>
 #include <iostream>
-#include "../Index.h"
 #include "../settings.h"
 
-// TODO dodelat print u dense a sparse
 class Matrix
 {
 private:
@@ -60,7 +58,8 @@ public:
 
     Matrix(const std::vector<std::vector<double>> &data);
     Matrix(const Matrix &other);
-    Matrix(const std::size_t shape_y, const std::size_t shape_x, const double fill = 0);
+    Matrix(const std::size_t &rows, const std::size_t &columns);
+    Matrix(const std::size_t shape_y, const std::size_t shape_x, const double fill);
     ~Matrix() = default;
 
     Matrix &operator=(const Matrix &other);

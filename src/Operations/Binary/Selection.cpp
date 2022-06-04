@@ -9,10 +9,9 @@ void Selection::validate(const Parameters &p) const
     {
         throw std::runtime_error("Selection takes matrix with 2 points: start-end");
     }
-    bool validIndex = true;
-    for (int i = 0; i < p.param2->m_shape_y; ++i)
+    for (std::size_t i = 0; i < p.param2->m_shape_y; ++i)
     {
-        for (int j = 0; j < p.param2->m_shape_y; ++j)
+        for (std::size_t j = 0; j < p.param2->m_shape_y; ++j)
         {
             double index = p.param2->at(i, j);
             if (!doubleCmp(index, std::round(index)))

@@ -10,18 +10,35 @@
 #include "../Operations/Unary/Transposition.h"
 #include "../Operations/Binary/Multiplication.h"
 
+/**
+ * @brief consume whitespaces (doesn't skip END_COMMAND) from input stream
+ *
+ * @param in input stream
+ */
 void Parser::consumeWhite(std::istream &in) const
 {
     while (std::isspace(in.peek()) && in.peek() != END_COMMAND)
         in.get();
 }
 
+/**
+ * @brief puts a string back into input stream
+ *
+ * @param in input stream
+ * @param str string to putback
+ */
 void Parser::putback(std::istream &in, const std::string &str) const
 {
     for (auto it = str.rbegin(); it != str.rend(); it++)
         in.putback(*it);
 }
 
+/**
+ * @brief gets a char from input stream, compares to given value, throws exception if values don't match
+ *
+ * @param in input stream
+ * @param c expected value
+ */
 void Parser::match(std::istream &in, char c) const
 {
     if (in.peek() == EOF)
@@ -73,7 +90,13 @@ std::unique_ptr<Matrix> Parser::parseMatrix(std::istream &in) const
         {
             for (int i = 0; i < shape_x; i++)
             {
-                row.push_back(parseValue(in));
+                auto val = parseValue(in);
+                if (!in)
+                {
+                    in.clear();
+                    throw std::runtime_error("Invalid row");
+                }
+                row.push_back(val);
                 if (in.peek() == DELIM)
                     match(in, DELIM);
             }
@@ -107,6 +130,12 @@ std::string Parser::parseIdentifier(std::istream &in) const
     return res;
 }
 
+/**
+ * @brief parses file name from given stream, file name satisfies {alpha}(.{alpha})
+ *
+ * @param in input stream
+ * @return std::string
+ */
 std::string Parser::parseFileName(std::istream &in) const
 {
 
@@ -131,6 +160,12 @@ std::string Parser::parseFileName(std::istream &in) const
     return res;
 }
 
+/**
+ * @brief gets operator, throws exception if operator is not defined
+ *
+ * @param in input stream
+ * @return std::string
+ */
 std::string Parser::parseOperator(std::istream &in) const
 {
     std::string res;
@@ -146,6 +181,13 @@ std::string Parser::parseOperator(std::istream &in) const
     return res;
 }
 
+/**
+ * @brief recursively parses expression from input stream
+ *
+ * @param in input stream
+ * @param prio priority of parsing
+ * @return std::unique_ptr<Matrix> evaluated expression
+ */
 std::unique_ptr<Matrix> Parser::parseExpression(std::istream &in, int prio) const
 {
 
@@ -153,24 +195,23 @@ std::unique_ptr<Matrix> Parser::parseExpression(std::istream &in, int prio) cons
     return parseExprRec(in, std::move(lhs), prio);
 }
 
+/**
+ * @brief determines how to parse data given from input stream (except for binary matrix operators), then returns evaluated data
+ *
+ * @param in input stream
+ * @return std::unique_ptr<Matrix> evaluated expression
+ */
 std::unique_ptr<Matrix> Parser::parseFactor(std::istream &in) const
 {
     consumeWhite(in);
     if (in.peek() == EOF)
         return nullptr;
-    // Matrix on input
+    // matrix on input
     else if (in.peek() == L_MAT_PAR)
     {
         return parseMatrix(in);
     }
-    // function argument on input
-    else if (in.peek() == L_FUNC_PAR)
-    {
-        match(in, L_FUNC_PAR);
-        auto res = parseExpression(in, 0);
-        match(in, R_FUNC_PAR);
-        return res;
-    }
+    // existing variable on input
     else if (in.peek() == VAR_IDENTIFIER)
     {
         match(in, VAR_IDENTIFIER);
@@ -181,6 +222,7 @@ std::unique_ptr<Matrix> Parser::parseFactor(std::istream &in) const
         }
         return std::make_unique<Matrix>(*variables.at(name));
     }
+    // name of input file on input
     else if (in.peek() == FILE_IDENTIFIER)
     {
         match(in, FILE_IDENTIFIER);
@@ -194,13 +236,13 @@ std::unique_ptr<Matrix> Parser::parseFactor(std::istream &in) const
         ifs.close();
         return res;
     }
-    // function or variable on input
+    // functions, setting variables, writing into files
     else if (std::isalpha(in.peek()))
     {
-        // check for variable first - function has parantheses
+        //? parseFileName because identifiers are always valid filenames, but filenames can be invalid identifiers
         std::string name = parseFileName(in);
         consumeWhite(in);
-        // check for functions that are called as '{string} {operator} {matrix}' (=, <)
+        // setting variables/writing into files is done with operators ('=', '<')
         if (operators.count(std::string(1, in.peek())) != 0 &&
             operators.at(std::string(1, in.peek())) == WRITE_PRIORITY)
         {
@@ -211,7 +253,7 @@ std::unique_ptr<Matrix> Parser::parseFactor(std::istream &in) const
                 std::ofstream ofs(name);
                 if (!ofs.is_open())
                 {
-                    throw std::runtime_error("Could not open output file");
+                    throw std::runtime_error("Could not open output file '" + name + "'");
                 }
                 res->print(ofs);
                 ofs.close();
@@ -228,9 +270,10 @@ std::unique_ptr<Matrix> Parser::parseFactor(std::istream &in) const
             }
             return res;
         }
+        //?putback in case name had a '.' (identifiers do not allow '.')
         putback(in, name);
-        std::string name = parseFileName(in);
-        // check for 'normal' functions {func}(*args)
+        name = parseIdentifier(in);
+        // function is on input
         if (operations.count(name) == 0)
         {
             throw std::runtime_error("parseFactor: Invalid function name '" + name + "'");
@@ -239,26 +282,17 @@ std::unique_ptr<Matrix> Parser::parseFactor(std::istream &in) const
         // unary functions
         if (operations.at(name)->numOfOperands() == 1)
         {
-            //?check for input file
-            std::string fname = parseIdentifier(in);
-            std::ifstream ifs(fname);
-            if (ifs.is_open())
-            {
-                // res = parseMatrix(ifs);
-                ifs.close();
-            }
-            putback(in, fname);
-
             auto res = operations.at(name)->evaluate({parseExpression(in, 0)});
-
             match(in, R_FUNC_PAR);
             return res;
         }
         // binary functions
         else if (operations.at(name)->numOfOperands() == 2)
         {
+            // first parameter
             auto param1 = parseExpression(in, 0);
             match(in, DELIM);
+            // second parameter
             auto param2 = parseExpression(in, 0);
             auto res = operations.at(name)->evaluate({std::move(param1), std::move(param2)});
             match(in, R_FUNC_PAR);

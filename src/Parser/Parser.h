@@ -18,11 +18,11 @@ private:
     const std::unordered_map<std::string, std::shared_ptr<Operation>> operations;
     const std::unordered_map<std::string, int> operators;
     std::map<std::string, std::shared_ptr<Matrix>> &variables;
-
+    //utilities
     void consumeWhite(std::istream &in) const;
     void putback(std::istream &is, const std::string &str) const;
     void match(std::istream &in, char c) const;
-
+    //
     std::string parseIdentifier(std::istream &in) const;
     std::string parseFileName(std::istream &in) const;
     std::string parseOperator(std::istream &in) const;

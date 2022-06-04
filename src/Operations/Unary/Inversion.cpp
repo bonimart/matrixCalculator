@@ -26,8 +26,8 @@ std::unique_ptr<Matrix> Inversion::evaluate(Parameters p) const
     Union u;
     Selection s;
     std::size_t size = p.param1->m_shape_x;
-    // TODO lepsi vypocet identity matrix
-    std::unique_ptr<Matrix> identityMat = g.evaluate(std::make_unique<Matrix>(*p.param1));
+    // identity matrix
+    std::unique_ptr<Matrix> identityMat = std::make_unique<Matrix>(p.param1->m_shape_y, p.param1->m_shape_x);
     //? resime soustavu (A|E) - E - jednotkova matice
     std::unique_ptr<Matrix> unitedMatrices = u.evaluate({std::move(p.param1), std::move(identityMat)});
     //? GEM prevede A na E, coz je pro regularni matice ekvivalentni nasobeni inverzi k A
