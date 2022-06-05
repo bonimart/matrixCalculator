@@ -6,4 +6,4 @@ rank($z);
 inv($z);
 build/matice.txt < $z;
 x = @build/matice.txt;
-sel(join(@build/matice.txt, $z), [[0,0],[2,2]]);
+sel(join(@build/matice.txt, $z), [[0,0],[1,1]]);
