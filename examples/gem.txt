@@ -1,0 +1,2 @@
+ONES = @examples/ones.txt;
+gem($ONES);
