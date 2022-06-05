@@ -69,9 +69,29 @@ double Parser::parseValue(std::istream &in) const
 
 std::unique_ptr<Matrix> Parser::parseMatrix(std::istream &in) const
 {
+    std::unique_ptr<Matrix> res;
     match(in, L_MAT_PAR);
-    std::vector<std::vector<double>> matrix;
+    if (in.peek() == L_MAT_PAR)
+    {
+        res = parseDense(in);
+    }
+    else if (in.peek() == L_SPARSE_INDEX)
+    {
+        res = parseSparse(in);
+    }
+    else
+    {
+        throw std::runtime_error("Expected '" + std::string(1, L_MAT_PAR) + "' or '" +
+                                 std::string(1, L_SPARSE_INDEX) + "', got" +
+                                 std::string(1, in.peek()));
+    }
+    match(in, R_MAT_PAR);
+    return res;
+}
 
+std::unique_ptr<Matrix> Parser::parseDense(std::istream &in) const
+{
+    std::vector<std::vector<double>> matrix;
     for (int shape_x = 0; in.peek() != R_MAT_PAR;)
     {
         std::vector<double> row;
@@ -81,6 +101,7 @@ std::unique_ptr<Matrix> Parser::parseMatrix(std::istream &in) const
             for (; std::isdigit(in.peek()) || in.peek() == '-'; shape_x++)
             {
                 row.push_back(parseValue(in));
+                consumeWhite(in);
                 if (in.peek() != R_MAT_PAR)
                     match(in, DELIM);
             }
@@ -104,11 +125,35 @@ std::unique_ptr<Matrix> Parser::parseMatrix(std::istream &in) const
         }
         match(in, R_MAT_PAR);
         matrix.push_back(row);
+        consumeWhite(in);
         if (in.peek() != R_MAT_PAR)
             match(in, DELIM);
     }
-    match(in, R_MAT_PAR);
 
+    return std::make_unique<Matrix>(matrix);
+}
+
+std::unique_ptr<Matrix> Parser::parseSparse(std::istream &in) const
+{
+    std::unordered_map<std::size_t, std::unordered_map<std::size_t, double>> matrix;
+    while (in.peek() != R_MAT_PAR)
+    {
+        std::size_t i, j;
+        match(in, L_SPARSE_INDEX);
+        in >> i;
+        match(in, DELIM);
+        in >> j;
+        match(in, R_SPARSE_INDEX);
+        match(in, INDEX_VAL_DELIM);
+        double val = parseValue(in);
+        if (in.peek() != R_MAT_PAR)
+            match(in, DELIM);
+        if (matrix.count(i) == i)
+        {
+            matrix[i] = {};
+        }
+        matrix[i][j] = val;
+    }
     return std::make_unique<Matrix>(matrix);
 }
 
@@ -228,7 +273,7 @@ std::unique_ptr<Matrix> Parser::parseFactor(std::istream &in) const
         return res;
     }
     // functions, setting variables, writing into files
-    else if (std::isalpha(in.peek()))
+    else if (std::isalpha(in.peek()) || in.peek() == '.' || in.peek() == '/')
     {
         //? parseFileName because identifiers are always valid filenames, but filenames can be invalid identifiers
         std::string name = parseFileName(in);

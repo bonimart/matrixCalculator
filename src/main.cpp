@@ -11,7 +11,7 @@ int main()
     {
         try
         {
-            auto result = c.execute(std::cin);
+            auto result = c.execute(std::cin, std::cout);
             if (result)
             {
                 std::cout << "-->" << std::endl;

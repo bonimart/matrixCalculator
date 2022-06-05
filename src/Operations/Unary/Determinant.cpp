@@ -2,7 +2,7 @@
 
 void Determinant::validate(const Parameters &p) const
 {
-    if (p.param1->m_shape_x != p.param2->m_shape_y)
+    if (p.param1->m_shape_x != p.param1->m_shape_y)
     {
         throw std::runtime_error("Determinant is defined for square matrices only");
     }

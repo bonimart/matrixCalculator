@@ -7,8 +7,11 @@ MKDIR=mkdir -p
 
 SOURCE_DIR=src
 BUILD_DIR=build
+TEST_DIR=tests
 EXAMPLE_DIR=examples
 DOC_DIR=doc
+
+TEST_TARGET=$(BUILD_DIR)/test
 
 #https://stackoverflow.com/questions/2483182/recursive-wildcards-in-gnu-make
 rwildcard=$(foreach d,$(wildcard $(1:=/*)),$(call rwildcard,$d,$2) $(filter $(subst *,%,$2),$d))

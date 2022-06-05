@@ -27,14 +27,7 @@ public:
           parser(m_operations, m_operators, m_variables)
     {
     }
-    void addMatrix(const std::shared_ptr<Matrix> m, const std::string &name);
-    void addMatrix(std::ifstream &ifs);
-    void exportMatrix(std::ofstream &ofs) const;
 
-    std::unique_ptr<Matrix> execute(std::istream &in)
-    {
-        auto result = parser.parseInput(in);
-        return result;
-    }
     void print(std::ostream &out);
+    std::unique_ptr<Matrix> execute(std::istream &in, std::ostream &out);
 };

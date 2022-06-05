@@ -23,6 +23,36 @@ Matrix::Matrix(const std::vector<std::vector<double>> &data)
     }
 }
 
+Matrix::Matrix(const std::unordered_map<std::size_t, std::unordered_map<std::size_t, double>> &data)
+{
+    int nonZeros = 0;
+    std::size_t rows = 0;
+    std::size_t columns = 0;
+    for (auto &[row, cols] : data)
+    {
+        if (row + 1 > rows)
+            rows = row + 1;
+        for (auto &[col, val] : cols)
+        {
+            if (col + 1 > columns)
+                columns = col + 1;
+            if (!doubleCmp(val, 0))
+                nonZeros++;
+        }
+    }
+    m_shape_y = rows;
+    m_shape_x = columns;
+    zeroCount = rows * columns - nonZeros;
+    if (zeroCount < SPARSE_THRESHOLD * m_shape_x * m_shape_y)
+    {
+        m_data = std::make_shared<DataDense>(data);
+    }
+    else
+    {
+        m_data = std::make_shared<DataSparse>(data);
+    }
+}
+
 Matrix::Matrix(const std::size_t rows,
                const std::size_t columns,
                const double fill)

@@ -29,6 +29,9 @@ private:
     public:
         DataDense(const std::vector<std::vector<double>> &data)
             : m_data(data) {}
+        DataDense(const std::unordered_map<std::size_t,
+                                           std::unordered_map<std::size_t,
+                                                              double>> &data);
         DataDense(const std::shared_ptr<Data> data,
                   std::size_t shape_y,
                   std::size_t shape_x);
@@ -81,6 +84,7 @@ public:
     std::size_t m_shape_x = 0;
 
     Matrix(const std::vector<std::vector<double>> &data);
+    Matrix(const std::unordered_map<std::size_t, std::unordered_map<std::size_t, double>> &data);
     Matrix(const Matrix &other);
     Matrix(const std::size_t &rows,
            const std::size_t &columns);

@@ -77,7 +77,7 @@ void Matrix::DataSparse::print(std::ostream &out,
             continue;
         if (!firstPrint)
         {
-            out << "," << std::endl
+            out << DELIM << std::endl
                 << " ";
         }
         firstPrint = true;
@@ -86,10 +86,10 @@ void Matrix::DataSparse::print(std::ostream &out,
             if (m_data.count(i) != 0 && m_data.at(i).count(j) != 0)
             {
                 if (!firstPrint)
-                    out << ", ";
+                    out << DELIM << " ";
                 else
                     firstPrint = false;
-                out << "{" << i << "," << j << "}:" << this->at(i, j);
+                out << L_SPARSE_INDEX << i << DELIM << j << R_SPARSE_INDEX << INDEX_VAL_DELIM << this->at(i, j);
             }
         }
     }
@@ -104,13 +104,13 @@ void Matrix::DataSparse::print(std::ostream &out,
     for (std::size_t i = 0; i < shape_y; ++i)
     {
         if (i != 0)
-            out << "," << std::endl
+            out << DELIM << std::endl
                 << " ";
         out << L_MAT_PAR;
         for (std::size_t j = 0; j < shape_x; ++j)
         {
             if (j != 0)
-                out << ", ";
+                out << DELIM << " ";
             out << this->at(i, j);
         }
         out << R_MAT_PAR;
