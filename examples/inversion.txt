@@ -1,0 +1,6 @@
+A = @examples/regular.txt
+INV = inv($A)
+$INV*$A
+I = [[1,0,0],[0,1,0],[0,0,1]]
+INV=sel(gem(join($A,$I)), [[0,3], [2,5]])
+$INV*$A
