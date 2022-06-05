@@ -1,11 +1,11 @@
 #include "Selection.h"
 #include "../../utils.h"
-#include <iostream>
 #include <cmath>
 
 void Selection::validate(const Parameters &p) const
 {
-    if (p.param2->m_shape_x != p.param2->m_shape_y || p.param2->m_shape_x != 2)
+    if (p.param2->m_shape_x != p.param2->m_shape_y ||
+        p.param2->m_shape_x != 2)
     {
         throw std::runtime_error("Selection takes matrix with 2 points: start-end");
     }
@@ -35,12 +35,17 @@ std::unique_ptr<Matrix> Selection::evaluate(Parameters p) const
     //! zvaliduj jestli jsou celociselny a je spravny rozmer
     validate(p);
 
-    std::size_t up = std::min(p.param2->at(0, 0), p.param2->at(1, 0));
-    std::size_t bottom = std::max(p.param2->at(0, 0), p.param2->at(1, 0));
-    std::size_t left = std::min(p.param2->at(0, 1), p.param2->at(1, 1));
-    std::size_t right = std::max(p.param2->at(0, 1), p.param2->at(1, 1));
+    std::size_t up = std::min(p.param2->at(0, 0),
+                              p.param2->at(1, 0));
+    std::size_t bottom = std::max(p.param2->at(0, 0),
+                                  p.param2->at(1, 0));
+    std::size_t left = std::min(p.param2->at(0, 1),
+                                p.param2->at(1, 1));
+    std::size_t right = std::max(p.param2->at(0, 1),
+                                 p.param2->at(1, 1));
 
-    std::unique_ptr<Matrix> m = std::make_unique<Matrix>(bottom - up + 1, right - left + 1);
+    std::unique_ptr<Matrix> m = std::make_unique<Matrix>(bottom - up + 1,
+                                                         right - left + 1);
     for (std::size_t i = up; i <= bottom; ++i)
     {
         for (std::size_t j = left; j <= right; ++j)

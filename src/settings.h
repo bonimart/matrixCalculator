@@ -1,5 +1,6 @@
+#pragma once
+
 #define SPARSE_THRESHOLD 0.5
-#define EPSILON 10
 #define DELIM ','
 #define END_COMMAND '\n'
 #define DEC_POINT '.'
@@ -12,3 +13,4 @@
 #define SET_VAR "="
 #define WRITE_TO_FILE "<"
 #define WRITE_PRIORITY 0
+//#define DIFFERENT_SPARSE_PRINT

@@ -23,14 +23,22 @@ Matrix::Matrix(const std::vector<std::vector<double>> &data)
     }
 }
 
-Matrix::Matrix(const std::size_t shape_y, const std::size_t shape_x, const double fill)
-    : m_shape_y(shape_y),
-      m_shape_x(shape_x)
+Matrix::Matrix(const std::size_t rows,
+               const std::size_t columns,
+               const double fill)
+    : m_shape_y(rows),
+      m_shape_x(columns)
 {
     if (doubleCmp(fill, 0))
+    {
         zeroCount = m_shape_x * m_shape_y;
+        m_data = std::make_shared<DataSparse>();
+        return;
+    }
+
     std::vector<std::vector<double>> data;
     std::vector<double> vec_x;
+
     for (std::size_t i = 0; i < m_shape_y; ++i)
     {
         data.push_back({});
@@ -39,17 +47,11 @@ Matrix::Matrix(const std::size_t shape_y, const std::size_t shape_x, const doubl
             data.at(i).push_back(fill);
         }
     }
-    if (zeroCount < SPARSE_THRESHOLD * m_shape_x * m_shape_y)
-    {
-        m_data = std::make_shared<DataDense>(data);
-    }
-    else
-    {
-        m_data = std::make_shared<DataSparse>(data);
-    }
+    m_data = std::make_shared<DataDense>(data);
 }
 
-Matrix::Matrix(const std::size_t &rows, const std::size_t &columns)
+Matrix::Matrix(const std::size_t &rows,
+               const std::size_t &columns)
 {
     *this = Matrix(rows, columns, 0);
     for (std::size_t i = 0; i < rows; ++i)
@@ -100,16 +102,33 @@ Matrix Matrix::operator*(const double val) const
     return m;
 }
 
-double Matrix::at(std::size_t i, std::size_t j) const
+/**
+ * @brief return element at given position
+ *
+ * @param row
+ * @param col
+ * @return double value at position [row, col]
+ */
+double Matrix::at(std::size_t row,
+                  std::size_t col) const
 {
-    return m_data->at(i, j);
+    return m_data->at(row, col);
 }
 
-void Matrix::set(std::size_t i, std::size_t j, double val)
+/**
+ * @brief set value at given position
+ *
+ * @param row
+ * @param col
+ * @param val
+ */
+void Matrix::set(std::size_t row,
+                 std::size_t col,
+                 double val)
 {
     lastZeroCount = zeroCount;
-    zeroCount += doubleCmp(val, 0) - doubleCmp(at(i, j), 0);
-    m_data->set(i, j, val);
+    zeroCount += doubleCmp(val, 0) - doubleCmp(at(row, col), 0);
+    m_data->set(row, col, val);
     balance();
 }
 
@@ -120,8 +139,9 @@ void Matrix::set(std::size_t i, std::size_t j, double val)
  */
 void Matrix::balance()
 {
-    bool wasBelowThreshold = lastZeroCount < SPARSE_THRESHOLD * m_shape_x * m_shape_y;
-    bool isBelowThreshold = zeroCount < SPARSE_THRESHOLD * m_shape_x * m_shape_y;
+    double threshold = SPARSE_THRESHOLD * m_shape_x * m_shape_y;
+    bool wasBelowThreshold = lastZeroCount < threshold;
+    bool isBelowThreshold = zeroCount < threshold;
     if (wasBelowThreshold == isBelowThreshold)
         return;
     else if (isBelowThreshold)

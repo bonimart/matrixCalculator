@@ -1,7 +1,6 @@
 #pragma once
 
 #include "../Operation.h"
-//#include <memory>
 
 class Unary : public Operation
 {

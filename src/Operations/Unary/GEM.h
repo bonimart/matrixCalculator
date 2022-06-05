@@ -1,7 +1,6 @@
 #pragma once
 
 #include "Unary.h"
-//#include <memory>
 
 class GEM : public Unary
 {

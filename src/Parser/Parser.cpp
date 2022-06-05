@@ -1,14 +1,8 @@
-//#pragma once
 #include <vector>
 #include <sstream>
 #include <fstream>
 #include "../Parser/Parser.h"
-#include "../Matrix/Matrix.h"
 #include "../settings.h"
-#include "../Operations/Unary/Identity.h"
-#include "../Operations/Binary/Addition.h"
-#include "../Operations/Unary/Transposition.h"
-#include "../Operations/Binary/Multiplication.h"
 
 /**
  * @brief consume whitespaces (doesn't skip END_COMMAND) from input stream
@@ -33,13 +27,7 @@ void Parser::putback(std::istream &in, const std::string &str) const
         in.putback(*it);
 }
 
-/**
- * @brief gets a char from input stream, compares to given value, throws exception if values don't match
- *
- * @param in input stream
- * @param c expected value
- */
-void Parser::match(std::istream &in, char c) const
+void Parser::matchLeft(std::istream &in, char c) const
 {
     if (in.peek() == EOF)
         return;
@@ -51,6 +39,17 @@ void Parser::match(std::istream &in, char c) const
                                  "', expected " + std::string(1, c) + "'");
     }
     in.get();
+}
+
+/**
+ * @brief gets a char from input stream, compares to given value, throws exception if values don't match
+ *
+ * @param in input stream
+ * @param c expected value
+ */
+void Parser::match(std::istream &in, char c) const
+{
+    matchLeft(in, c);
     consumeWhite(in);
 }
 
@@ -85,6 +84,8 @@ std::unique_ptr<Matrix> Parser::parseMatrix(std::istream &in) const
                 if (in.peek() != R_MAT_PAR)
                     match(in, DELIM);
             }
+            if (shape_x == 0)
+                throw std::runtime_error("Matrix cannot have empty rows");
         }
         else
         {
@@ -97,7 +98,7 @@ std::unique_ptr<Matrix> Parser::parseMatrix(std::istream &in) const
                     throw std::runtime_error("Invalid row");
                 }
                 row.push_back(val);
-                if (in.peek() == DELIM)
+                if (i < shape_x - 1)
                     match(in, DELIM);
             }
         }
@@ -141,18 +142,7 @@ std::string Parser::parseFileName(std::istream &in) const
 
     std::string res;
 
-    while (std::isalpha(in.peek()))
-    {
-        res += in.get();
-    }
-    if (in.peek() != '.')
-    {
-        consumeWhite(in);
-        return res;
-    }
-    //? for file extensions
-    res += in.get();
-    while (std::isalpha(in.peek()))
+    while (std::isalpha(in.peek()) || in.peek() == '.' || in.peek() == '/')
     {
         res += in.get();
     }
@@ -173,7 +163,8 @@ std::string Parser::parseOperator(std::istream &in) const
     char c = in.peek();
     if (operators.count(std::string(1, c)) == 0)
     {
-        throw std::runtime_error("Unexpected token '" + std::string(1, c) + "'");
+        throw std::runtime_error("Unexpected token '" +
+                                 std::string(1, c) + "'");
     }
     in.get();
     res = std::string(1, c);
@@ -253,7 +244,8 @@ std::unique_ptr<Matrix> Parser::parseFactor(std::istream &in) const
                 std::ofstream ofs(name);
                 if (!ofs.is_open())
                 {
-                    throw std::runtime_error("Could not open output file '" + name + "'");
+                    throw std::runtime_error("Could not open output file '" +
+                                             name + "'");
                 }
                 res->print(ofs);
                 ofs.close();
@@ -276,13 +268,14 @@ std::unique_ptr<Matrix> Parser::parseFactor(std::istream &in) const
         // function is on input
         if (operations.count(name) == 0)
         {
-            throw std::runtime_error("parseFactor: Invalid function name '" + name + "'");
+            throw std::runtime_error("Invalid function name '" + name + "'");
         }
         match(in, L_FUNC_PAR);
         // unary functions
         if (operations.at(name)->numOfOperands() == 1)
         {
-            auto res = operations.at(name)->evaluate({parseExpression(in, 0)});
+            auto param1 = parseExpression(in, 0);
+            auto res = operations.at(name)->evaluate(std::move(param1));
             match(in, R_FUNC_PAR);
             return res;
         }
@@ -294,27 +287,30 @@ std::unique_ptr<Matrix> Parser::parseFactor(std::istream &in) const
             match(in, DELIM);
             // second parameter
             auto param2 = parseExpression(in, 0);
-            auto res = operations.at(name)->evaluate({std::move(param1), std::move(param2)});
+            auto res = operations.at(name)->evaluate({std::move(param1),
+                                                      std::move(param2)});
             match(in, R_FUNC_PAR);
             return res;
         }
     }
     else
     {
-        throw std::runtime_error("parseFactor: Expected '" +
-                                 std::string(1, L_MAT_PAR) + "', '" +
-                                 std::string(1, L_FUNC_PAR) +
-                                 "' or valid identifier, got '" +
+        throw std::runtime_error("Invalid identifier '" +
                                  std::string(1, in.peek()) + "'");
     }
     return nullptr;
 }
 
-std::unique_ptr<Matrix> Parser::parseExprRec(std::istream &in, std::unique_ptr<Matrix> lhs, int prio) const
+std::unique_ptr<Matrix> Parser::parseExprRec(std::istream &in,
+                                             std::unique_ptr<Matrix> lhs,
+                                             int prio) const
 {
     while (1)
     {
-        if (in.peek() == R_FUNC_PAR || in.peek() == EOF || in.peek() == DELIM || in.peek() == END_COMMAND)
+        if (in.peek() == R_FUNC_PAR ||
+            in.peek() == EOF ||
+            in.peek() == DELIM ||
+            in.peek() == END_COMMAND)
         {
             return lhs;
         }
@@ -327,7 +323,10 @@ std::unique_ptr<Matrix> Parser::parseExprRec(std::istream &in, std::unique_ptr<M
         }
 
         auto rhs = parseFactor(in);
-        if (in.peek() == R_FUNC_PAR || in.peek() == EOF || in.peek() == DELIM || in.peek() == END_COMMAND)
+        if (in.peek() == R_FUNC_PAR ||
+            in.peek() == EOF ||
+            in.peek() == DELIM ||
+            in.peek() == END_COMMAND)
         {
             return operations.at(op)->evaluate({std::move(lhs), std::move(rhs)});
         }
@@ -347,7 +346,7 @@ std::unique_ptr<Matrix> Parser::parseExprRec(std::istream &in, std::unique_ptr<M
 std::unique_ptr<Matrix> Parser::parseInput(std::istream &in) const
 {
     auto res = parseExpression(in, 0);
-    match(in, END_COMMAND);
+    matchLeft(in, END_COMMAND);
     return res;
 }
 

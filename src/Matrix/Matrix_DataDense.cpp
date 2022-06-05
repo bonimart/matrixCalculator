@@ -1,6 +1,10 @@
 #include "Matrix.h"
+#include "../settings.h"
+#include <memory>
 
-Matrix::DataDense::DataDense(const std::shared_ptr<Data> data, std::size_t shape_y, std::size_t shape_x)
+Matrix::DataDense::DataDense(const std::shared_ptr<Data> data,
+                             std::size_t shape_y,
+                             std::size_t shape_x)
 {
     for (std::size_t i = 0; i < shape_y; ++i)
     {
@@ -12,17 +16,36 @@ Matrix::DataDense::DataDense(const std::shared_ptr<Data> data, std::size_t shape
     }
 }
 
-double Matrix::DataDense::at(std::size_t i, std::size_t j) const
+/**
+ * @brief return element at given position
+ *
+ * @param row
+ * @param col
+ * @return double value at position [row, col]
+ */
+double Matrix::DataDense::at(std::size_t row,
+                             std::size_t col) const
 {
-    return m_data.at(i).at(j);
+    return m_data.at(row).at(col);
 }
 
-void Matrix::DataDense::set(std::size_t i, std::size_t j, double val)
+/**
+ * @brief set value at given position
+ *
+ * @param row
+ * @param col
+ * @param val
+ */
+void Matrix::DataDense::set(std::size_t row,
+                            std::size_t col,
+                            double val)
 {
-    m_data[i][j] = val;
+    m_data[row][col] = val;
 }
 
-void Matrix::DataDense::print(std::ostream &out, std::size_t shape_y, std::size_t shape_x) const
+void Matrix::DataDense::print(std::ostream &out,
+                              std::size_t shape_y,
+                              std::size_t shape_x) const
 {
     out << L_MAT_PAR;
     for (std::size_t i = 0; i < shape_y; ++i)

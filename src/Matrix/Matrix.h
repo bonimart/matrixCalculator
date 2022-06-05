@@ -4,7 +4,6 @@
 #include <unordered_map>
 #include <memory>
 #include <iostream>
-#include "../settings.h"
 
 class Matrix
 {
@@ -12,9 +11,14 @@ private:
     class Data
     {
     public:
-        virtual double at(std::size_t i, std::size_t j) const = 0;
-        virtual void set(std::size_t i, std::size_t j, const double val) = 0;
-        virtual void print(std::ostream &out, std::size_t shape_y, std::size_t shape_x) const = 0;
+        virtual double at(std::size_t row,
+                          std::size_t col) const = 0;
+        virtual void set(std::size_t row,
+                         std::size_t col,
+                         const double val) = 0;
+        virtual void print(std::ostream &out,
+                           std::size_t shape_y,
+                           std::size_t shape_x) const = 0;
         virtual std::shared_ptr<Data> clone() const = 0;
     };
     class DataDense : public Data
@@ -25,25 +29,45 @@ private:
     public:
         DataDense(const std::vector<std::vector<double>> &data)
             : m_data(data) {}
-        DataDense(const std::shared_ptr<Data> data, std::size_t shape_y, std::size_t shape_x);
-        virtual double at(std::size_t i, std::size_t j) const override;
-        virtual void set(std::size_t i, std::size_t j, const double val) override;
-        virtual void print(std::ostream &out, std::size_t shape_y, std::size_t shape_x) const override;
+        DataDense(const std::shared_ptr<Data> data,
+                  std::size_t shape_y,
+                  std::size_t shape_x);
+        virtual double at(std::size_t row,
+                          std::size_t col) const override;
+        virtual void set(std::size_t row,
+                         std::size_t col,
+                         const double val) override;
+        virtual void print(std::ostream &out,
+                           std::size_t shape_y,
+                           std::size_t shape_x) const override;
         virtual std::shared_ptr<Data> clone() const override;
     };
     class DataSparse : public Data
     {
     protected:
-        std::unordered_map<std::size_t, std::unordered_map<std::size_t, double>> m_data;
+        std::unordered_map<std::size_t,
+                           std::unordered_map<std::size_t,
+                                              double>>
+            m_data;
 
     public:
-        DataSparse(const std::unordered_map<std::size_t, std::unordered_map<std::size_t, double>> &data)
+        DataSparse() = default;
+        DataSparse(const std::unordered_map<std::size_t,
+                                            std::unordered_map<std::size_t,
+                                                               double>> &data)
             : m_data(data) {}
         DataSparse(const std::vector<std::vector<double>> &data);
-        DataSparse(const std::shared_ptr<Data> data, std::size_t shape_y, std::size_t shape_x);
-        virtual double at(std::size_t i, std::size_t j) const override;
-        virtual void set(std::size_t i, std::size_t j, const double val) override;
-        virtual void print(std::ostream &out, std::size_t shape_y, std::size_t shape_x) const override;
+        DataSparse(const std::shared_ptr<Data> data,
+                   std::size_t shape_y,
+                   std::size_t shape_x);
+        virtual double at(std::size_t row,
+                          std::size_t col) const override;
+        virtual void set(std::size_t row,
+                         std::size_t col,
+                         const double val) override;
+        virtual void print(std::ostream &out,
+                           std::size_t shape_y,
+                           std::size_t shape_x) const override;
         virtual std::shared_ptr<Data> clone() const override;
     };
 
@@ -58,16 +82,22 @@ public:
 
     Matrix(const std::vector<std::vector<double>> &data);
     Matrix(const Matrix &other);
-    Matrix(const std::size_t &rows, const std::size_t &columns);
-    Matrix(const std::size_t shape_y, const std::size_t shape_x, const double fill);
+    Matrix(const std::size_t &rows,
+           const std::size_t &columns);
+    Matrix(const std::size_t shape_y,
+           const std::size_t shape_x,
+           const double fill);
     ~Matrix() = default;
 
     Matrix &operator=(const Matrix &other);
     Matrix operator+(const double val) const;
     Matrix operator*(const double val) const;
 
-    double at(std::size_t i, std::size_t j) const;
-    void set(std::size_t i, std::size_t j, double val);
+    double at(std::size_t row,
+              std::size_t col) const;
+    void set(std::size_t row,
+             std::size_t col,
+             double val);
     void balance();
 
     void print(std::ostream &out) const;

@@ -1,22 +1,23 @@
 #include <vector>
 #include "settings.h"
-#include "Matrix/Matrix.h"
-#include "Operations/Operation.h"
-#include "Parser/Parser.h"
 #include "Calculator.h"
-#include "Operations/Binary/Multiplication.h"
-#include "Operations/Binary/Addition.h"
-#include "Operations/Unary/Transposition.h"
+#include "Operations/operations.h"
 
 int main()
 {
-    Calculator c;
+    Calculator c(operations, operators);
 
     do
     {
         try
         {
-            c.execute(std::cin);
+            auto result = c.execute(std::cin);
+            if (result)
+            {
+                std::cout << "-->" << std::endl;
+                result->print(std::cout);
+                std::cout << std::endl;
+            }
         }
         catch (const std::exception &e)
         {

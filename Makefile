@@ -18,14 +18,14 @@ HEADER=$(call rwildcard, $(SOURCE_DIR), *.h)
 OBJECT=$(patsubst $(SOURCE_DIR)/%.cpp, $(BUILD_DIR)/%.o, $(SOURCE))
 
 .PHONY: all
-all: deps compile doc
+all: compile doc
 
 .PHONY: run
-run: $(TARGET)
+run: deps $(TARGET)
 	./$(TARGET)
 
 .PHONY: compile
-compile: $(TARGET)
+compile: deps $(TARGET)
 
 $(TARGET): $(OBJECT)
 	$(LD) $(CXXFLAGS) -o $@ $^
@@ -39,7 +39,7 @@ deps:
 
 .PHONY: clean
 clean:
-	rm -rf $(BUILD_DIR)/ $(TARGET) $(DOC_DIR)/ $(TARGET).zip
+	rm -rf $(BUILD_DIR)/ $(TARGET) $(DOC_DIR)/ $(TARGET).zip Makefile.d
 
 .PHONY: doc
 doc: Doxyfile README.md $(HEADER)

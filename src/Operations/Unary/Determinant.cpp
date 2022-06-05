@@ -21,7 +21,9 @@ std::unique_ptr<Matrix> Determinant::evaluate(Parameters p) const
     return std::make_unique<Matrix>(1, 1, det);
 }
 
-double Determinant::detRec(const std::shared_ptr<Matrix> m, double prod, const std::vector<int> &permutation) const
+double Determinant::detRec(const std::shared_ptr<Matrix> m,
+                           double prod,
+                           const std::vector<int> &permutation) const
 {
     double sum = 0;
     if (permutation.empty())
@@ -43,7 +45,9 @@ double Determinant::detRec(const std::shared_ptr<Matrix> m, double prod, const s
                 if (jt != it)
                     perm.push_back(*jt);
             }
-            sum += detRec(m, sgn * prod * m->at(*it, m->m_shape_x - permutation.size()), perm);
+            sum += detRec(m,
+                          sgn * prod * m->at(*it, m->m_shape_x - permutation.size()),
+                          perm);
         }
     }
     return sum;

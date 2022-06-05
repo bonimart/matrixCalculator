@@ -1,5 +1,6 @@
+#pragma once
 #include <memory>
-#include "../Operation.h"
+#include "../../Matrix/Matrix.h"
 
 class Parameters
 {

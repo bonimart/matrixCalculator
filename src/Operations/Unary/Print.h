@@ -16,7 +16,6 @@ public:
     virtual std::unique_ptr<Matrix> evaluate(Parameters p) const override
     {
         Identity i;
-
         p.param1->print(out);
         out << std::endl;
         return i.evaluate(std::move(p.param1));

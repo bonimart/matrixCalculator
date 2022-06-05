@@ -1,7 +1,10 @@
 #include "Matrix.h"
 #include "../utils.h"
+#include "../settings.h"
 
-Matrix::DataSparse::DataSparse(const std::shared_ptr<Data> data, std::size_t shape_y, std::size_t shape_x)
+Matrix::DataSparse::DataSparse(const std::shared_ptr<Data> data,
+                               std::size_t shape_y,
+                               std::size_t shape_x)
 {
     for (std::size_t i = 0; i < shape_y; ++i)
     {
@@ -25,29 +28,46 @@ Matrix::DataSparse::DataSparse(const std::vector<std::vector<double>> &data)
     }
 }
 
-double Matrix::DataSparse::at(std::size_t i, std::size_t j) const
+/**
+ * @brief return element at given position
+ *
+ * @param row
+ * @param col
+ * @return double value at position [row, col]
+ */
+double Matrix::DataSparse::at(std::size_t row, std::size_t col) const
 {
-    if (m_data.count(i) == 0 || m_data.at(i).count(j) == 0)
+    if (m_data.count(row) == 0 || m_data.at(row).count(col) == 0)
         return 0;
-    return m_data.at(i).at(j);
+    return m_data.at(row).at(col);
 }
 
-void Matrix::DataSparse::set(std::size_t i, std::size_t j, double val)
+/**
+ * @brief set value at given position
+ *
+ * @param row
+ * @param col
+ * @param val
+ */
+void Matrix::DataSparse::set(std::size_t row, std::size_t col, double val)
 {
     if (doubleCmp(val, 0))
     {
-        if (m_data.count(i) != 0 && m_data.at(i).count(j) != 0)
+        if (m_data.count(row) != 0 && m_data.at(row).count(col) != 0)
         {
-            m_data.at(i).erase(j);
-            if (m_data.at(i).empty())
-                m_data.erase(i);
+            m_data.at(row).erase(col);
+            if (m_data.at(row).empty())
+                m_data.erase(row);
         }
         return;
     }
-    m_data[i][j] = val;
+    m_data[row][col] = val;
 }
 
-void Matrix::DataSparse::print(std::ostream &out, std::size_t shape_y, std::size_t shape_x) const
+#ifdef DIFFERENT_SPARSE_PRINT
+void Matrix::DataSparse::print(std::ostream &out,
+                               std::size_t shape_y,
+                               std::size_t shape_x) const
 {
     out << L_MAT_PAR;
     bool firstPrint = true;
@@ -74,25 +94,30 @@ void Matrix::DataSparse::print(std::ostream &out, std::size_t shape_y, std::size
         }
     }
     out << R_MAT_PAR;
-    /*
-     out << L_MAT_PAR;
-     for (std::size_t i = 0; i < shape_y; ++i)
-     {
-         if (i != 0)
-             out << "," << std::endl
-                 << " ";
-         out << L_MAT_PAR;
-         for (std::size_t j = 0; j < shape_x; ++j)
-         {
-             if (j != 0)
-                 out << ", ";
-             out << this->at(i, j);
-         }
-         out << R_MAT_PAR;
-     }
-     out << R_MAT_PAR;
-     */
 }
+#else
+void Matrix::DataSparse::print(std::ostream &out,
+                               std::size_t shape_y,
+                               std::size_t shape_x) const
+{
+    out << L_MAT_PAR;
+    for (std::size_t i = 0; i < shape_y; ++i)
+    {
+        if (i != 0)
+            out << "," << std::endl
+                << " ";
+        out << L_MAT_PAR;
+        for (std::size_t j = 0; j < shape_x; ++j)
+        {
+            if (j != 0)
+                out << ", ";
+            out << this->at(i, j);
+        }
+        out << R_MAT_PAR;
+    }
+    out << R_MAT_PAR;
+}
+#endif
 
 std::shared_ptr<Matrix::Data> Matrix::DataSparse::clone() const
 {
