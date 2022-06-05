@@ -2,6 +2,10 @@
 
 #include "Binary.h"
 
+/**
+ * @brief class for matrix subtraction
+ *
+ */
 class Subtraction : public Binary
 {
 public:

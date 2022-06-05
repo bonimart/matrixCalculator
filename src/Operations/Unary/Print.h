@@ -4,6 +4,10 @@
 #include "Unary.h"
 #include "Identity.h"
 
+/**
+ * @brief class for printing matrices into output stream
+ *
+ */
 class Print : public Unary
 {
 protected:

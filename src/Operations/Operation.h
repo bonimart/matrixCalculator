@@ -4,6 +4,10 @@
 #include "Parameters/Parameter.h"
 #include <memory>
 
+/**
+ * @brief Abstract class for all operations
+ *
+ */
 class Operation
 {
 public:

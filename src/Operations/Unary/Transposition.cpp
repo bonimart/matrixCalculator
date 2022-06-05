@@ -1,6 +1,12 @@
 #include "Transposition.h"
 #include <iostream>
 
+/**
+ * @brief transpose given matrix
+ *
+ * @param p
+ * @return std::unique_ptr<Matrix>
+ */
 std::unique_ptr<Matrix> Transposition::evaluate(Parameters p) const
 {
     std::unique_ptr<Matrix> m = std::move(p.param1);

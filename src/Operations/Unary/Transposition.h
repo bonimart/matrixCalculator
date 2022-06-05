@@ -2,6 +2,10 @@
 
 #include "Unary.h"
 
+/**
+ * @brief class for matrix transposition
+ *
+ */
 class Transposition : public Unary
 {
 public:

@@ -6,12 +6,12 @@
 int main()
 {
     Calculator c(operations, operators);
-
     do
     {
         try
         {
             auto result = c.execute(std::cin, std::cout);
+            // print result of an operation
             if (result)
             {
                 std::cout << "-->" << std::endl;
@@ -22,13 +22,11 @@ int main()
         catch (const std::exception &e)
         {
             std::cerr << e.what() << '\n';
+            // skip all unnecessary characters after an exception is thrown
             while (std::cin.get() != END_COMMAND && std::cin)
                 ;
         }
     } while (!(std::cin.eof()));
 
-    std::cout
-        << std::endl;
-    c.print(std::cout);
     return EXIT_SUCCESS;
 }

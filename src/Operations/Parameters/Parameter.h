@@ -2,6 +2,10 @@
 #include <memory>
 #include "../../Matrix/Matrix.h"
 
+/**
+ * @brief helper class that can store up to two matrices
+ *
+ */
 class Parameters
 {
 public:

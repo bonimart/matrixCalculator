@@ -2,10 +2,17 @@
 #include "GEM.h"
 #include "../../utils.h"
 
+/**
+ * @brief calculate rank of a matrix using gaussian elimination
+ *
+ * @param p
+ * @return std::unique_ptr<Matrix>
+ */
 std::unique_ptr<Matrix> Rank::evaluate(Parameters p) const
 {
     GEM g;
     std::unique_ptr<Matrix> m = g.evaluate(std::move(p.param1));
+    // rank is a dimension of rows of a matrix, after GEM all linearly dependent rows are full of zeroes
     int emptyRows = 0;
     for (int i = m->m_shape_y - 1; i >= 0; --i)
     {

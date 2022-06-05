@@ -2,8 +2,17 @@
 #include "../../utils.h"
 #include <cmath>
 
+/**
+ * @brief check if second matrix has valid indexes of first matrix
+ *
+ * @param p
+ */
 void Selection::validate(const Parameters &p) const
 {
+    if (p.paramCount != numOfOperands())
+    {
+        throw std::runtime_error("Selection takes two arguments");
+    }
     if (p.param2->m_shape_x != p.param2->m_shape_y ||
         p.param2->m_shape_x != 2)
     {
@@ -18,11 +27,11 @@ void Selection::validate(const Parameters &p) const
             {
                 throw std::runtime_error("Selection index is not an integer");
             }
-            else if (j == 0 && (index < 0 || index > p.param1->m_shape_y))
+            else if (j == 0 && (index < 0 || index >= p.param1->m_shape_y))
             {
                 throw std::runtime_error("Index is out of bounds");
             }
-            else if (j == 1 && (index < 0 || index > p.param1->m_shape_x))
+            else if (j == 1 && (index < 0 || index >= p.param1->m_shape_x))
             {
                 throw std::runtime_error("Index is out of bounds");
             }
@@ -32,9 +41,8 @@ void Selection::validate(const Parameters &p) const
 
 std::unique_ptr<Matrix> Selection::evaluate(Parameters p) const
 {
-    //! zvaliduj jestli jsou celociselny a je spravny rozmer
     validate(p);
-
+    //? second matrix can have corner points in any order
     std::size_t up = std::min(p.param2->at(0, 0),
                               p.param2->at(1, 0));
     std::size_t bottom = std::max(p.param2->at(0, 0),

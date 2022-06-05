@@ -2,6 +2,10 @@
 
 #include "Binary.h"
 
+/**
+ * @brief Class for matrix addition
+ *
+ */
 class Addition : public Binary
 {
 public:

@@ -1,6 +1,11 @@
 #include "Calculator.h"
 #include "settings.h"
 
+/**
+ * @brief print all variables of a calculator into given stream
+ *
+ * @param out
+ */
 void Calculator::print(std::ostream &out)
 {
     for (auto [name, matrix] : m_variables)
@@ -11,9 +16,15 @@ void Calculator::print(std::ostream &out)
     }
 }
 
+/**
+ * @brief execute a command
+ *
+ * @param in input stream
+ * @param out output stream
+ * @return std::unique_ptr<Matrix>
+ */
 std::unique_ptr<Matrix> Calculator::execute(std::istream &in, std::ostream &out)
 {
-
     std::string name = parser.parseIdentifier(in);
     if (name == PRINT_VARIABLES)
     {

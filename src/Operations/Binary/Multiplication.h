@@ -2,6 +2,10 @@
 
 #include "Binary.h"
 
+/**
+ * @brief Class for matrix multiplication
+ *
+ */
 class Multiplication : public Binary
 {
 public:

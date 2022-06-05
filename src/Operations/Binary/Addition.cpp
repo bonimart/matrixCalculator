@@ -1,14 +1,29 @@
 #include "Addition.h"
 
+/**
+ * @brief validate if addition was given parameters with the same shape
+ *
+ * @param p
+ */
 void Addition::validate(const Parameters &p) const
 {
+    if (p.paramCount != numOfOperands())
+    {
+        throw std::runtime_error("Invalid number of operands");
+    }
     if (p.param1->m_shape_x != p.param2->m_shape_x ||
         p.param1->m_shape_y != p.param2->m_shape_y)
     {
-        throw std::runtime_error("Matrix addition is defined for matries of the same shape only.");
+        throw std::runtime_error("Matrix addition is defined for matries of the same shape only");
     }
 }
 
+/**
+ * @brief add two matrices by adding every element
+ *
+ * @param p
+ * @return std::unique_ptr<Matrix>
+ */
 std::unique_ptr<Matrix> Addition::evaluate(Parameters p) const
 {
     validate(p);

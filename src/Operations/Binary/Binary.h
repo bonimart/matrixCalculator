@@ -2,6 +2,10 @@
 
 #include "../Operation.h"
 
+/**
+ * @brief Class for binary operations
+ *
+ */
 class Binary : public Operation
 {
 public:

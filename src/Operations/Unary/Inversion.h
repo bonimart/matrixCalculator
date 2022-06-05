@@ -2,6 +2,10 @@
 
 #include "Unary.h"
 
+/**
+ * @brief Class for inverse matrix calculation
+ *
+ */
 class Inversion : public Unary
 {
 public:

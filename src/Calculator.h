@@ -11,6 +11,10 @@
 #include "Matrix/Matrix.h"
 #include "Parser/Parser.h"
 
+/**
+ * @brief calculator class that stores variables from computations
+ *
+ */
 class Calculator
 {
 private:

@@ -2,6 +2,10 @@
 
 #include "Binary.h"
 
+/**
+ * @brief class that can unite matrices by joining their columns
+ *
+ */
 class Union : public Binary
 {
 public:

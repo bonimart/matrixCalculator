@@ -2,6 +2,10 @@
 
 #include "Unary.h"
 
+/**
+ * @brief Class for gaussian elimination
+ *
+ */
 class GEM : public Unary
 {
 public:

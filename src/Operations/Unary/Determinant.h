@@ -2,6 +2,10 @@
 
 #include "Unary.h"
 
+/**
+ * @brief Class for calculating determinant of a square matrix
+ *
+ */
 class Determinant : public Unary
 {
 protected:

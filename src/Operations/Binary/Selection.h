@@ -2,6 +2,10 @@
 
 #include "Binary.h"
 
+/**
+ * @brief Class for selecting part of a matrix
+ *
+ */
 class Selection : public Binary
 {
 public:

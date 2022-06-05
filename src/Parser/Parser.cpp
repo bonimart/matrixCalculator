@@ -3,6 +3,7 @@
 #include <fstream>
 #include "../Parser/Parser.h"
 #include "../settings.h"
+#include "../utils.h"
 
 /**
  * @brief consume whitespaces (doesn't skip END_COMMAND) from input stream
@@ -27,6 +28,12 @@ void Parser::putback(std::istream &in, const std::string &str) const
         in.putback(*it);
 }
 
+/**
+ * @brief match first non whitespace character, throw exception if input doesn't match, used for command termination
+ *
+ * @param in input stream
+ * @param c expected char
+ */
 void Parser::matchLeft(std::istream &in, char c) const
 {
     if (in.peek() == EOF)
@@ -42,10 +49,10 @@ void Parser::matchLeft(std::istream &in, char c) const
 }
 
 /**
- * @brief gets a char from input stream, compares to given value, throws exception if values don't match
+ * @brief match first non whitespace character, throw exception if input doesn't match
  *
  * @param in input stream
- * @param c expected value
+ * @param c expected char
  */
 void Parser::match(std::istream &in, char c) const
 {
@@ -67,6 +74,12 @@ double Parser::parseValue(std::istream &in) const
     return val;
 }
 
+/**
+ * @brief Parse matrix in sparse or dense form
+ *
+ * @param in input stream
+ * @return std::unique_ptr<Matrix>
+ */
 std::unique_ptr<Matrix> Parser::parseMatrix(std::istream &in) const
 {
     std::unique_ptr<Matrix> res;
@@ -89,6 +102,12 @@ std::unique_ptr<Matrix> Parser::parseMatrix(std::istream &in) const
     return res;
 }
 
+/**
+ * @brief parse matrix written in dense form
+ *
+ * @param in
+ * @return std::unique_ptr<Matrix>
+ */
 std::unique_ptr<Matrix> Parser::parseDense(std::istream &in) const
 {
     std::vector<std::vector<double>> matrix;
@@ -96,6 +115,7 @@ std::unique_ptr<Matrix> Parser::parseDense(std::istream &in) const
     {
         std::vector<double> row;
         match(in, L_MAT_PAR);
+        // shape_x = 0 means we don't know how many values are in a row yet (empty matrices are not allowed)
         if (shape_x == 0)
         {
             for (; std::isdigit(in.peek()) || in.peek() == '-'; shape_x++)
@@ -108,6 +128,7 @@ std::unique_ptr<Matrix> Parser::parseDense(std::istream &in) const
             if (shape_x == 0)
                 throw std::runtime_error("Matrix cannot have empty rows");
         }
+        // now we can check if there is enough elements in a row
         else
         {
             for (int i = 0; i < shape_x; i++)
@@ -133,9 +154,16 @@ std::unique_ptr<Matrix> Parser::parseDense(std::istream &in) const
     return std::make_unique<Matrix>(matrix);
 }
 
+/**
+ * @brief parse matrices written in sparse form
+ *
+ * @param in
+ * @return std::unique_ptr<Matrix>
+ */
 std::unique_ptr<Matrix> Parser::parseSparse(std::istream &in) const
 {
     std::unordered_map<std::size_t, std::unordered_map<std::size_t, double>> matrix;
+    // sparse matrices are easy to read, since there is always index pair followed by value
     while (in.peek() != R_MAT_PAR)
     {
         std::size_t i, j;
@@ -177,7 +205,7 @@ std::string Parser::parseIdentifier(std::istream &in) const
 }
 
 /**
- * @brief parses file name from given stream, file name satisfies {alpha}(.{alpha})
+ * @brief parses file name from given stream
  *
  * @param in input stream
  * @return std::string
@@ -187,7 +215,7 @@ std::string Parser::parseFileName(std::istream &in) const
 
     std::string res;
 
-    while (std::isalpha(in.peek()) || in.peek() == '.' || in.peek() == '/')
+    while (isValidFileName(in.peek()))
     {
         res += in.get();
     }
@@ -272,8 +300,8 @@ std::unique_ptr<Matrix> Parser::parseFactor(std::istream &in) const
         ifs.close();
         return res;
     }
-    // functions, setting variables, writing into files
-    else if (std::isalpha(in.peek()) || in.peek() == '.' || in.peek() == '/')
+    // functions, setting variables, writing into files (identifiers are more restrictive than file names)
+    else if (isValidFileName(in.peek()))
     {
         //? parseFileName because identifiers are always valid filenames, but filenames can be invalid identifiers
         std::string name = parseFileName(in);
@@ -346,12 +374,21 @@ std::unique_ptr<Matrix> Parser::parseFactor(std::istream &in) const
     return nullptr;
 }
 
+/**
+ * @brief  parse binary operators recursively
+ *
+ * @param in input strea,
+ * @param lhs left hand side
+ * @param prio parsing priority
+ * @return std::unique_ptr<Matrix>
+ */
 std::unique_ptr<Matrix> Parser::parseExprRec(std::istream &in,
                                              std::unique_ptr<Matrix> lhs,
                                              int prio) const
 {
     while (1)
     {
+        // no more operator to be seen
         if (in.peek() == R_FUNC_PAR ||
             in.peek() == EOF ||
             in.peek() == DELIM ||
@@ -366,7 +403,7 @@ std::unique_ptr<Matrix> Parser::parseExprRec(std::istream &in,
             putback(in, op);
             return lhs;
         }
-
+        // no more operator to be seen
         auto rhs = parseFactor(in);
         if (in.peek() == R_FUNC_PAR ||
             in.peek() == EOF ||
@@ -375,7 +412,7 @@ std::unique_ptr<Matrix> Parser::parseExprRec(std::istream &in,
         {
             return operations.at(op)->evaluate({std::move(lhs), std::move(rhs)});
         }
-
+        // check for operators with higher priority
         auto op2 = parseOperator(in);
         putback(in, op2);
         if (operators.at(op) < operators.at(op2))
@@ -388,6 +425,12 @@ std::unique_ptr<Matrix> Parser::parseExprRec(std::istream &in,
     return lhs;
 }
 
+/**
+ * @brief parse input until EOF or end_command is encountered
+ *
+ * @param in input stream
+ * @return std::unique_ptr<Matrix>
+ */
 std::unique_ptr<Matrix> Parser::parseInput(std::istream &in) const
 {
     auto res = parseExpression(in, 0);
@@ -395,6 +438,12 @@ std::unique_ptr<Matrix> Parser::parseInput(std::istream &in) const
     return res;
 }
 
+/**
+ * @brief parse input from string
+ *
+ * @param input
+ * @return std::unique_ptr<Matrix>
+ */
 std::unique_ptr<Matrix> Parser::parseInput(std::string &input) const
 {
     std::stringstream ss(input);

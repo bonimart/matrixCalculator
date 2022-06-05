@@ -1,8 +1,17 @@
 #include "Subtraction.h"
 #include "Addition.h"
 
+/**
+ * @brief check if matrices are of the same shape
+ *
+ * @param p
+ */
 void Subtraction::validate(const Parameters &p) const
 {
+    if (p.paramCount != numOfOperands())
+    {
+        throw std::runtime_error("Matrix subtraction takes two arguments");
+    }
     if (p.param1->m_shape_x != p.param2->m_shape_x ||
         p.param1->m_shape_y != p.param2->m_shape_y)
     {

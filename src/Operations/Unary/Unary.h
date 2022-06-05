@@ -2,6 +2,10 @@
 
 #include "../Operation.h"
 
+/**
+ * @brief a class that puts all unary operations together
+ *
+ */
 class Unary : public Operation
 {
 public:

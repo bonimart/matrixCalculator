@@ -1,7 +1,5 @@
-# Specifikace zadání
-Maticová kalkulačka
-
-Vytvořte aplikaci implementující maticovou kalkulačku.
+# Zadání z Progtestu
+Cílem semestrální práce je implementace maticové kalkulačky.
 
 Kalkulačka musí implementovat:
 
@@ -14,25 +12,35 @@ Kalkulačka musí implementovat:
     proměnné (uložení matice do proměnné, načítání matice ze vstupu, využití proměnné ve výpočtu)
     uložení matice (v efektivní reprezentaci) do souboru a její načtení ze souboru
 
-Cílem semestrální práce je implementace maticové kalkulačky.
+# Specifikace zadání
+Matice bude možné zadat ve tvaru `[[a,b,...],[...],...]` nebo `[{i, j}:val,...]`.
+Příkazy budou oddělovány znakem `;`.
 
-Kalkulačka bude splňovat následující:
-- práce s maticemi různé velikosti
-- základní operace (sčítání, odčítání, násobení, transpozice)
-- sloučení a oříznutí matic
-- pro čtvercové matice výpočet inverze
-- efektivní paměťovou reprezentaci
-- výpočet determinantu, určení hodnosti, Gaussova eliminační metoda
-- možnost uložení matice do proměnné
-- uložení matice do souboru a její načtení ze souboru
-- výpočet maticových rozkladů LU, QR a SVD
-- pro čtvercové matice výpočet vlastních čísel matice pomocí QR algoritmu
+Kalkulačka bude implementovat následující operace:
+- `help` - vypíše návod použití
+- `vars` - vypíše všechny uložené proměnné
+- `[x] = [exp]` - přiřadí do proměnné s názvem 'x' hodnotu výrazu 'exp'
+- `[f] < [exp]` - vypíše vyhodnocený výraz do souboru s názvem 'f'
+- `$[x]` - vrátí aktuální hodnotu proměnné 'x'
+- `@[f]` - importuje výraz ze souboru
+- `tr([exp])` - transponuje hodnotu výrazu
+- `print([exp])` - vypíše aktuální hodnotu výrazu
+- `join([exp1], [exp2])` - vytvoří novou matici tak, že přidá sloupce druhé matice ke sloupcům první matice
+- `sel([exp1], [exp2])` - vybere část první matice podle indexů v druhé matici (musí být 2x2)
+- `[exp1] + [exp2]` - sečte matice po složkách
+- `[exp1] - [exp2]` - odečte matice po složkách
+- `[exp1] * [exp2]` - provede maticové násobení
+- `det([exp1])` - vypočítá determinant matice
+- `gem([exp1])` - vrátí "zgemovanou" vstupní matici
+- `rank([exp1])` - vypočítá hodnost matice
+- `inv([exp1])` - vypočítá inverzi regulární matice
 
-Matice budou podle hustoty vnitřně reprezentovány buď jako 2D pole, nebo jako mapa. Pro Gaussovu eliminační metodu a QR algoritmus bude možné zvolit verzi s komentářem, kde budou vypsány jednotlivé kroky algoritmu.
+Kalkulačka bude navíc implementovat rekurzivní parser pro zpracování komplikovanějších příkazů v rámci jednoho řádku.
+
 
 # Použití polymorfismu
-Polymorfismus je využit při vyhodnocení různých operací nad maticemi.
-Dále se uplatňuje při práci s řídkými/hustými maticemi.
+Polymorfismus se využívá u operací - třída `Operation` má abstraktní metody `evaluate` a `validate`. Polymorfní volání je ve tříde `Parser`, kde při parsování vstupu rovnou dochází k vyhodnocení operací.
+Dále se polymorfismus uplatňuje při práci s hustými a řídkými maticemi. Ve tříde `Matrix` je abstraktní třída `Data`, ze které dědí `DataDense` a `DataSparse`. Tyto podtřídy implementují abstraktní metody `at` a `set`.
 
 
 # Ukázka použití
@@ -45,5 +53,6 @@ rank($z);
 inv($z);
 build/matice.txt < $z;
 x = @build/matice.txt;
-sel(join(@build/matice.txt, $z), [[0,0],[2,2]]);
+sel(join(@build/matice.txt, $z), [[0,0],[1,1]]);
+
 ```

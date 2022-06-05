@@ -2,6 +2,11 @@
 #include "../settings.h"
 #include "../utils.h"
 
+/**
+ * @brief Construct a new Matrix:: Matrix object
+ *
+ * @param data
+ */
 Matrix::Matrix(const std::vector<std::vector<double>> &data)
     : m_shape_y(data.size()), m_shape_x(data.at(0).size())
 {
@@ -23,7 +28,13 @@ Matrix::Matrix(const std::vector<std::vector<double>> &data)
     }
 }
 
-Matrix::Matrix(const std::unordered_map<std::size_t, std::unordered_map<std::size_t, double>> &data)
+/**
+ * @brief Construct a new Matrix:: Matrix object
+ *
+ * @param data
+ */
+Matrix::Matrix(const std::unordered_map<std::size_t,
+                                        std::unordered_map<std::size_t, double>> &data)
 {
     int nonZeros = 0;
     std::size_t rows = 0;
@@ -53,6 +64,13 @@ Matrix::Matrix(const std::unordered_map<std::size_t, std::unordered_map<std::siz
     }
 }
 
+/**
+ * @brief Construct a new Matrix:: Matrix object, filled with single value
+ *
+ * @param rows
+ * @param columns
+ * @param fill value to fill the matrix with
+ */
 Matrix::Matrix(const std::size_t rows,
                const std::size_t columns,
                const double fill)
@@ -80,6 +98,12 @@ Matrix::Matrix(const std::size_t rows,
     m_data = std::make_shared<DataDense>(data);
 }
 
+/**
+ * @brief Construct a new Matrix:: Matrix object
+ *
+ * @param rows
+ * @param columns
+ */
 Matrix::Matrix(const std::size_t &rows,
                const std::size_t &columns)
 {
@@ -90,6 +114,11 @@ Matrix::Matrix(const std::size_t &rows,
     }
 }
 
+/**
+ * @brief Construct a new Matrix:: Matrix object from existing matrix
+ *
+ * @param other
+ */
 Matrix::Matrix(const Matrix &other)
 {
     m_shape_y = other.m_shape_y;
@@ -98,6 +127,12 @@ Matrix::Matrix(const Matrix &other)
     m_data = other.m_data->clone();
 }
 
+/**
+ * @brief copy data from other matrix into this one
+ *
+ * @param other
+ * @return Matrix&
+ */
 Matrix &Matrix::operator=(const Matrix &other)
 {
     m_shape_y = other.m_shape_y;
@@ -107,6 +142,12 @@ Matrix &Matrix::operator=(const Matrix &other)
     return *this;
 }
 
+/**
+ * @brief add value to every element of the matrix
+ *
+ * @param val
+ * @return Matrix
+ */
 Matrix Matrix::operator+(const double val) const
 {
     Matrix m = Matrix(m_shape_y, m_shape_x, 0);
@@ -119,6 +160,13 @@ Matrix Matrix::operator+(const double val) const
     }
     return m;
 }
+
+/**
+ * @brief multiply every element of matrix with given value
+ *
+ * @param val
+ * @return Matrix
+ */
 Matrix Matrix::operator*(const double val) const
 {
     Matrix m = Matrix(m_shape_y, m_shape_x, 0);
@@ -184,6 +232,11 @@ void Matrix::balance()
     }
 }
 
+/**
+ * @brief print matrix to output stream
+ *
+ * @param out
+ */
 void Matrix::print(std::ostream &out) const
 {
     m_data->print(out, m_shape_y, m_shape_x);

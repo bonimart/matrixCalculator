@@ -1,12 +1,20 @@
 #include "GEM.h"
 #include "../../utils.h"
 
+/**
+ * @brief apply gaussian elimination to a matrix
+ *
+ * @param p
+ * @return std::unique_ptr<Matrix>
+ */
 std::unique_ptr<Matrix> GEM::evaluate(Parameters p) const
 {
+    validate(p);
     std::unique_ptr<Matrix> m = std::move(p.param1);
+    // transform matrix into upper triangular form
     for (std::size_t i = 0; i < std::min(m->m_shape_x, m->m_shape_y); ++i)
     {
-        //*dokud je 0 na pozici [i,j], swapuj radky, pokud jsou samy nuly, jdi dal
+        // swap lines while 0 is at position [i, i], skip column if this one is full of zeros
         for (std::size_t row = i + 1;
              row < m->m_shape_y && doubleCmp(m->at(i, i), 0);
              ++row)
@@ -24,7 +32,7 @@ std::unique_ptr<Matrix> GEM::evaluate(Parameters p) const
             }
         }
 
-        //*od vsech radku pod i odecti nasobek radku i
+        // elimination of rows under the current one
         for (std::size_t row = i + 1;
              row < m->m_shape_y && !doubleCmp(m->at(i, i), 0);
              ++row)
@@ -38,7 +46,7 @@ std::unique_ptr<Matrix> GEM::evaluate(Parameters p) const
             }
         }
     }
-    //*zpetny chod
+    // achieve reduced form
     for (int i = m->m_shape_y - 1; i >= 0; --i)
     {
         for (std::size_t j = 0; j < m->m_shape_x; ++j)

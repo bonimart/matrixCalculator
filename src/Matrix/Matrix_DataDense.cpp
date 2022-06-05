@@ -2,10 +2,16 @@
 #include "../settings.h"
 #include <memory>
 
+/**
+ * @brief Construct a new Matrix:: Data Dense:: Data Dense object
+ *
+ * @param data
+ */
 Matrix::DataDense::DataDense(const std::unordered_map<std::size_t,
                                                       std::unordered_map<std::size_t,
                                                                          double>> &data)
 {
+    // unordered map doesn't store information about shape explicitly
     std::size_t rows = 0;
     std::size_t columns = 0;
     for (auto &[row, cols] : data)
@@ -33,6 +39,13 @@ Matrix::DataDense::DataDense(const std::unordered_map<std::size_t,
     }
 }
 
+/**
+ * @brief Construct a new Matrix:: Data Dense:: Data Dense object from existing data
+ *
+ * @param data
+ * @param shape_y
+ * @param shape_x
+ */
 Matrix::DataDense::DataDense(const std::shared_ptr<Data> data,
                              std::size_t shape_y,
                              std::size_t shape_x)
@@ -74,6 +87,13 @@ void Matrix::DataDense::set(std::size_t row,
     m_data[row][col] = val;
 }
 
+/**
+ * @brief print dense matrix to output stream
+ *
+ * @param out
+ * @param shape_y
+ * @param shape_x
+ */
 void Matrix::DataDense::print(std::ostream &out,
                               std::size_t shape_y,
                               std::size_t shape_x) const
@@ -96,6 +116,11 @@ void Matrix::DataDense::print(std::ostream &out,
     out << R_MAT_PAR;
 }
 
+/**
+ * @brief make a copy of dense matrix
+ *
+ * @return std::shared_ptr<Matrix::Data>
+ */
 std::shared_ptr<Matrix::Data> Matrix::DataDense::clone() const
 {
     return std::make_shared<Matrix::DataDense>(m_data);

@@ -2,6 +2,13 @@
 #include "../utils.h"
 #include "../settings.h"
 
+/**
+ * @brief Construct a new Matrix:: Data Sparse:: Data Sparse object
+ *
+ * @param data
+ * @param shape_y
+ * @param shape_x
+ */
 Matrix::DataSparse::DataSparse(const std::shared_ptr<Data> data,
                                std::size_t shape_y,
                                std::size_t shape_x)
@@ -16,6 +23,11 @@ Matrix::DataSparse::DataSparse(const std::shared_ptr<Data> data,
     }
 }
 
+/**
+ * @brief Construct a new Matrix:: Data Sparse:: Data Sparse object
+ *
+ * @param data
+ */
 Matrix::DataSparse::DataSparse(const std::vector<std::vector<double>> &data)
 {
     for (std::size_t i = 0; i < data.size(); ++i)
@@ -65,6 +77,13 @@ void Matrix::DataSparse::set(std::size_t row, std::size_t col, double val)
 }
 
 #ifdef DIFFERENT_SPARSE_PRINT
+/**
+ * @brief print sparse matrix to output stream
+ *
+ * @param out
+ * @param shape_y
+ * @param shape_x
+ */
 void Matrix::DataSparse::print(std::ostream &out,
                                std::size_t shape_y,
                                std::size_t shape_x) const
@@ -119,6 +138,11 @@ void Matrix::DataSparse::print(std::ostream &out,
 }
 #endif
 
+/**
+ * @brief make a copy of sparse matrix
+ *
+ * @return std::shared_ptr<Matrix::Data>
+ */
 std::shared_ptr<Matrix::Data> Matrix::DataSparse::clone() const
 {
     return std::make_shared<Matrix::DataSparse>(m_data);

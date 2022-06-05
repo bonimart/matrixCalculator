@@ -5,9 +5,17 @@
 #include <memory>
 #include <iostream>
 
+/**
+ * @brief class that stores all information about matrices
+ *
+ */
 class Matrix
 {
 private:
+    /**
+     * @brief Abstract class for storing data
+     *
+     */
     class Data
     {
     public:
@@ -21,6 +29,11 @@ private:
                            std::size_t shape_x) const = 0;
         virtual std::shared_ptr<Data> clone() const = 0;
     };
+
+    /**
+     * @brief Class for storing dense matrices using 2D vector
+     *
+     */
     class DataDense : public Data
     {
     protected:
@@ -45,6 +58,11 @@ private:
                            std::size_t shape_x) const override;
         virtual std::shared_ptr<Data> clone() const override;
     };
+
+    /**
+     * @brief Class for storing sparse matrices using a map
+     *
+     */
     class DataSparse : public Data
     {
     protected:
@@ -74,9 +92,9 @@ private:
         virtual std::shared_ptr<Data> clone() const override;
     };
 
+    // counters to determine if matrix should be balanced as dense/sparse
     int lastZeroCount = -1;
     int zeroCount = 0;
-
     std::shared_ptr<Data> m_data;
 
 public:
@@ -84,7 +102,8 @@ public:
     std::size_t m_shape_x = 0;
 
     Matrix(const std::vector<std::vector<double>> &data);
-    Matrix(const std::unordered_map<std::size_t, std::unordered_map<std::size_t, double>> &data);
+    Matrix(const std::unordered_map<std::size_t,
+                                    std::unordered_map<std::size_t, double>> &data);
     Matrix(const Matrix &other);
     Matrix(const std::size_t &rows,
            const std::size_t &columns);
