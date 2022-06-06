@@ -38,6 +38,6 @@ public:
     {
     }
 
-    void print(std::ostream &out);
+    void print(std::ostream &out) const;
     std::unique_ptr<Matrix> execute(std::istream &in, std::ostream &out);
 };

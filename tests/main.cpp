@@ -185,7 +185,7 @@ int main()
            m13->m_shape_x == 1 &&
            m13->at(0, 0) == 1);
 
-    auto m14 = parser.parseInput(std::string("singular=@../examples/ones.txt;"));
+    auto m14 = parser.parseInput(std::string("singular=@../examples/singular.txt;"));
     // singularity check
     assert(m14->m_shape_x != m14->m_shape_y || m14->m_shape_x > r.evaluate(std::move(m14))->at(0, 0));
 

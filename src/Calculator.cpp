@@ -6,7 +6,7 @@
  *
  * @param out
  */
-void Calculator::print(std::ostream &out)
+void Calculator::print(std::ostream &out) const
 {
     for (auto [name, matrix] : m_variables)
     {
