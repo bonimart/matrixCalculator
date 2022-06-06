@@ -1,0 +1,7 @@
+REGULAR = @examples/regular.txt;
+rank($REGULAR);
+rank($REGULAR*$REGULAR);
+
+SINGULAR = @examples/singular.txt;
+rank($SINGULAR);
+rank($SINGULAR*$REGULAR);

@@ -1,2 +1,5 @@
-ONES = @examples/ones.txt;
-gem($ONES);
+SINGULAR = @examples/singular.txt;
+gem($SINGULAR);
+
+REGULAR = @examples/regular.txt;
+gem($REGULAR);

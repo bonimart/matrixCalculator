@@ -28,6 +28,12 @@ public:
                const std::unordered_map<std::string, int> &operators)
         : m_operations(operations),
           m_operators(operators),
+          parser(m_operations, m_operators, m_variables) {}
+    ~Calculator() = default;
+    Calculator(const Calculator &other)
+        : m_variables(other.m_variables),
+          m_operations(other.m_operations),
+          m_operators(other.m_operators),
           parser(m_operations, m_operators, m_variables)
     {
     }

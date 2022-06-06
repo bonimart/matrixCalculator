@@ -38,6 +38,11 @@ public:
            const std::unordered_map<std::string, int> &opPrio,
            std::map<std::string, std::shared_ptr<Matrix>> &var)
         : operations(op), operators(opPrio), variables(var) {}
+    ~Parser() = default;
+    Parser(const Parser &other)
+        : operations(other.operations),
+          operators(other.operators),
+          variables(other.variables) {}
 
     void matchLeft(std::istream &in, char c) const;
     void putback(std::istream &is, const std::string &str) const;
@@ -45,5 +50,5 @@ public:
     std::string parseIdentifier(std::istream &in) const;
 
     std::unique_ptr<Matrix> parseInput(std::istream &in) const;
-    std::unique_ptr<Matrix> parseInput(std::string &input) const;
+    std::unique_ptr<Matrix> parseInput(const std::string &input) const;
 };

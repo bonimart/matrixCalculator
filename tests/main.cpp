@@ -1,7 +1,10 @@
 #include <cassert>
 #include <sstream>
-//#include "../src/Calculator.h"
+#include <map>
+#include "../src/Calculator.h"
+#include "../src/Parser/Parser.h"
 #include "../src/utils.h"
+#include "../src/Operations/operations.h"
 #include "../src/Matrix/Matrix.h"
 #include "../src/Operations/Unary/Print.h"
 #include "../src/Operations/Unary/GEM.h"
@@ -17,6 +20,12 @@
 
 int main()
 {
+    // utilities check
+    double d1 = 1.5;
+    double d2 = 1.50000000001;
+    assert(!doubleCmp(d1, d2));
+    assert(doubleCmp(d1, d1));
+
     // Basic matrix operations
     Matrix m({{1, 0}, {0, 1}});
     assert(m.at(0, 0) == 1);
@@ -75,6 +84,8 @@ int main()
     try
     {
         d.evaluate(std::make_unique<Matrix>(m4));
+        // exception should be thrown;
+        assert(1 == 0);
     }
     catch (const std::runtime_error &e)
     {
@@ -87,6 +98,8 @@ int main()
     try
     {
         inv.evaluate(std::make_unique<Matrix>(m4));
+        // exception should be thrown;
+        assert(1 == 0);
     }
     catch (const std::runtime_error &e)
     {
@@ -114,5 +127,71 @@ int main()
     auto m12 = sel.evaluate({std::move(m11),
                              std::make_unique<Matrix>(std::vector<std::vector<double>>({{0, 0}, {0, 1}}))});
     assert(m12->m_shape_x == 2 && m12->m_shape_y == 1);
+
+    std::map<std::string, std::shared_ptr<Matrix>> variables;
+    Parser parser(operations, operators, variables);
+    // Empty matrix
+    try
+    {
+        parser.parseInput(std::string("[[]]"));
+        // exception should be thrown;
+        assert(1 == 0);
+    }
+    catch (const std::exception &e)
+    {
+        assert(e.what() == std::string("Matrix cannot have empty rows"));
+    }
+    // rows are not separated by ','
+    try
+    {
+
+        parser.parseInput(std::string("[[1,2][1,2]]"));
+        // exception should be thrown;
+        assert(1 == 0);
+    }
+    catch (const std::exception &e)
+    {
+        assert(e.what() == std::string("Unexpected token '[', expected ','"));
+    }
+    // number of elements in next rows doesn't match number of elements in first row
+    try
+    {
+
+        parser.parseInput(std::string("[[1,2],[1,]]"));
+        // exception should be thrown;
+        assert(1 == 0);
+    }
+    catch (const std::exception &e)
+    {
+        // std::cerr << e.what();
+        assert(e.what() == std::string("Invalid row"));
+    }
+
+    parser.parseInput(std::string("a=[[1]];"));
+    // variable is called without '$'
+    try
+    {
+
+        parser.parseInput(std::string("a;"));
+        // exception should be thrown;
+        assert(1 == 0);
+    }
+    catch (const std::exception &e)
+    {
+        assert(e.what() == std::string("Invalid function name 'a'"));
+    }
+    auto m13 = parser.parseInput(std::string("$a;"));
+    assert(m13->m_shape_x == m13->m_shape_y &&
+           m13->m_shape_x == 1 &&
+           m13->at(0, 0) == 1);
+
+    auto m14 = parser.parseInput(std::string("singular=@../examples/ones.txt;"));
+    // singularity check
+    assert(m14->m_shape_x != m14->m_shape_y || m14->m_shape_x > r.evaluate(std::move(m14))->at(0, 0));
+
+    auto m15 = parser.parseInput(std::string("regular=@../examples/regular.txt;"));
+    // regularity check
+    assert(m15->m_shape_x == m15->m_shape_y && m15->m_shape_x == r.evaluate(std::move(m15))->at(0, 0));
+
     return EXIT_SUCCESS;
 }

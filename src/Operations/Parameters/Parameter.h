@@ -19,4 +19,9 @@ public:
              std::unique_ptr<Matrix> p2)
       : param1(std::move(p1)),
         param2(std::move(p2)) { paramCount = 2; }
+  ~Parameters() = default;
+  Parameters(const Parameters &p)
+      : param1(std::make_unique<Matrix>(*p.param1)),
+        param2(std::make_unique<Matrix>(*p.param2)),
+        paramCount(p.paramCount) {}
 };

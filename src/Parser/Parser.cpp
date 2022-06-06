@@ -43,7 +43,7 @@ void Parser::matchLeft(std::istream &in, char c) const
     {
         throw std::runtime_error("Unexpected token '" +
                                  std::string(1, in.peek()) +
-                                 "', expected " + std::string(1, c) + "'");
+                                 "', expected '" + std::string(1, c) + "'");
     }
     in.get();
 }
@@ -215,7 +215,7 @@ std::string Parser::parseFileName(std::istream &in) const
 
     std::string res;
 
-    while (isValidFileName(in.peek()))
+    while (isValidFileNameChar(in.peek()))
     {
         res += in.get();
     }
@@ -301,7 +301,7 @@ std::unique_ptr<Matrix> Parser::parseFactor(std::istream &in) const
         return res;
     }
     // functions, setting variables, writing into files (identifiers are more restrictive than file names)
-    else if (isValidFileName(in.peek()))
+    else if (isValidFileNameChar(in.peek()))
     {
         //? parseFileName because identifiers are always valid filenames, but filenames can be invalid identifiers
         std::string name = parseFileName(in);
@@ -444,7 +444,7 @@ std::unique_ptr<Matrix> Parser::parseInput(std::istream &in) const
  * @param input
  * @return std::unique_ptr<Matrix>
  */
-std::unique_ptr<Matrix> Parser::parseInput(std::string &input) const
+std::unique_ptr<Matrix> Parser::parseInput(const std::string &input) const
 {
     std::stringstream ss(input);
     return parseExpression(ss, 0);
